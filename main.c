@@ -20,9 +20,7 @@ void init(){
     noecho();
     curs_set(0);
     keypad(stdscr,TRUE);
-    keypad(w1,TRUE);
     keypad(w2,TRUE);
-    keypad(w3,TRUE);
     set_escdelay(50);
     refresh();
 }
@@ -36,11 +34,42 @@ int main(int argc, char* argv[])
     int temp = 0;
     getmaxyx(stdscr,yMax,xMax);
     dir* directory = read_directory();
+    chdir("..");
+    directory->parentdir = read_directory();
+    insert_dir(directory->parentdir,directory);
+    chdir(directory->path);
     while(true){
         getmaxyx(stdscr,yMax,xMax); 
         yMax -= 1;
         print_path(pathw,directory->path);
         render_contents(w2,directory);
+        if(strlen(directory->path) > 1){
+            render_contents(w1,directory->parentdir);
+        }
+        else{
+            werase(w1);
+            wrefresh(w1);
+        }
+        if(directory->type[directory->cursor] == DT_DIR){
+            if(directory->dirlist[directory->cursor] == NULL){
+                chdir(directory->content[directory->cursor]);
+                dir* temp = read_directory();
+                temp->parentdir = directory;
+                render_contents(w3,temp);
+                /* Only displays and frees it, TO DO: save it in the directory */
+                insert_dir(directory,temp);
+                /*free_dir(temp);*/
+                chdir(directory->path);
+            }
+            else {
+                render_contents(w3,directory->dirlist[directory->cursor]);
+            }
+        }
+        else {
+            werase(w3);
+            wrefresh(w3);
+        }
+
 
         ch = getchar();
         if(ch == KEY_RESIZE){
@@ -65,12 +94,12 @@ int main(int argc, char* argv[])
                 break;
 
             case 'h':
-                directory->cursor = -1;
-                directory = open_entry(directory);
+                directory = open_entry(directory,1);
+
                 break;    
 
             case 'l':
-                directory = open_entry(directory);
+                directory = open_entry(directory,0);
                 break;
 
             case 'f':
@@ -80,11 +109,11 @@ int main(int argc, char* argv[])
                 temp = find_entry(directory);
                 if (temp >= 0){
                     directory->cursor = temp;
-                    directory = open_entry(directory);
+                    directory = open_entry(directory,0);
                     if(directory->type[directory->cursor] == DT_DIR)
                         directory->index = 0;
                 }
-                
+
                 render_contents(w2,directory);
                 wmove(cmdw,0,0);
                 wclrtoeol(cmdw);
@@ -94,11 +123,11 @@ int main(int argc, char* argv[])
                 if(ch != 'h' && ch != 'l')
                     ungetch(ch);
                 timeout(-1);
-                
+
 
                 break;
             case 'q':
-    
+
                 wclear(w1);
                 wrefresh(w1);
                 delwin(w1);
@@ -106,7 +135,7 @@ int main(int argc, char* argv[])
                 return 0;
 
         } 
-    
+
     }
     return 0;
 }

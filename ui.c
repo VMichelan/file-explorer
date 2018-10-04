@@ -6,6 +6,10 @@
 
 #include "dir.h"
 
+#define W1FACTOR 1/5
+#define W2FACTOR 2/5
+#define W3FACTOR 2/5
+
 WINDOW *w1,*w2,*w3,*cmdw,*pathw;
 
 int utf8_strlen(char* str,int len)
@@ -28,16 +32,17 @@ int utf8_strlen(char* str,int len)
 void initui(){
     int yMax,xMax;
     getmaxyx(stdscr,yMax,xMax);
-    w1 = newwin(yMax-2,xMax/3,1,0);
-    w2 = newwin(yMax-2,xMax/3,1,xMax/3+1);
-    w3 = newwin(yMax-2,xMax/3,1,(2*xMax/3)+1);
+    w1 = newwin(yMax-2,xMax*W1FACTOR,1,0);
+    w2 = newwin(yMax-2,xMax*W2FACTOR,1,xMax*W1FACTOR+1);
+    w3 = newwin(yMax-2,xMax*W3FACTOR,1,(xMax*W1FACTOR+1)+(xMax*W2FACTOR)+1);
     pathw = newwin(1,xMax,0,0);
     cmdw = newwin(1,xMax,yMax-1,0);
+    keypad(w2,TRUE);
 
 }
 
 int getchar(){
-    return wgetch(w1);
+    return wgetch(w2);
 }
 
 void handle_resize(){
@@ -76,15 +81,17 @@ void print_path(WINDOW* w,char* path){
 }
 
 void render_contents(WINDOW* w,dir* directory){
+    if (!directory)
+        return;
     int i = 0,j,yMax,xMax,len,count,index = directory->index;
     char ch;
     getmaxyx(w,yMax,xMax);
     if(directory->size == 0){
-        mvwprintw(w1,i,0," ");
-        wclrtoeol(w1);
-        wattron(w1,COLOR_PAIR(3));
-        wprintw(w1,"***EMPTY***");
-        wattroff(w1,COLOR_PAIR(3));
+        mvwprintw(w,i,0," ");
+        wclrtoeol(w);
+        wattron(w,COLOR_PAIR(3));
+        wprintw(w,"***EMPTY***");
+        wattroff(w,COLOR_PAIR(3));
         i++;
     }
     while(index < directory->size && i < yMax){

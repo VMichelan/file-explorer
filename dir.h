@@ -15,13 +15,19 @@ struct dir{
     char* path;
     int index;
     dir* parentdir;
+    dir** dirlist;
+    int dircount;
 };
 
 int free_dir(dir* dir_info);
 void sort_dir(dir* directory);
 dir* read_directory();
 int find_entry(dir* directory);
-dir* open_entry(dir* directory);
+dir* open_entry(dir* directory,int up);
 void move_cursor(dir* directory,int yMax,int number);
+void insert_dir(dir* directory,dir* ins);
+int run(char* argument);
+dir* up_dir(dir* directory);
+
 
 #endif
