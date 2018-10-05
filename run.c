@@ -25,6 +25,6 @@ int run(char* cmd,char* argument){
 }
 
 int open_terminal(){
-    return run("i3-sensible-terminal",NULL);
+    return run(TERMINAL,NULL);
 }
     
