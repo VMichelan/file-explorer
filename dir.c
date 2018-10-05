@@ -148,9 +148,14 @@ dir* read_directory(){
 }
 
 void insert_dir(dir* directory,dir* ins){
-    int i;
+    int i,j = 0;
+    for(i = 0; i < strlen(ins->path);i++)
+        if(ins->path[i] == '/')
+            j = i;
+
+
     for(i = 0;i < directory->dircount;i++)
-        if(strstr(ins->path,directory->content[i]))
+        if(!strcmp(ins->path+j,directory->content[i]))
             break;
 
     if(i < directory->dircount)
