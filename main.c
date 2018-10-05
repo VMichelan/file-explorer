@@ -52,14 +52,19 @@ int main(int argc, char* argv[])
         }
         if(directory->type[directory->cursor] == DT_DIR){
             if(directory->dirlist[directory->cursor] == NULL){
-                chdir(directory->content[directory->cursor]);
-                dir* temp = read_directory();
-                temp->parentdir = directory;
-                render_contents(w3,temp);
-                /* Only displays and frees it, TO DO: save it in the directory */
-                insert_dir(directory,temp);
-                /*free_dir(temp);*/
-                chdir(directory->path);
+                if(chdir(directory->content[directory->cursor]) != -1){
+                    dir* temp = read_directory();
+                    temp->parentdir = directory;
+                    render_contents(w3,temp);
+                    /* Only displays and frees it, TO DO: save it in the directory */
+                    insert_dir(directory,temp);
+                    /*free_dir(temp);*/
+                    chdir(directory->path);
+                }
+                else {
+                    werase(w3);
+                    wrefresh(w3);
+                }
             }
             else {
                 render_contents(w3,directory->dirlist[directory->cursor]);

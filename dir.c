@@ -242,6 +242,7 @@ dir* up_dir(dir* directory){
 
 
 dir* open_entry(dir* directory,int up){
+    int ctrl = 0;
     if(!strcmp(directory->path,"/") && up == 1)
         return directory;
     if (up == 1){
@@ -265,10 +266,14 @@ dir* open_entry(dir* directory,int up){
     }
     else if(directory->type[directory->cursor] == DT_DIR){
         if(directory->dirlist[directory->cursor] == NULL){
-            chdir(directory->content[directory->cursor]);
-            dir* temp = read_directory();
-            temp->parentdir = directory;
-            directory->dirlist[directory->cursor] = temp;
+            if (chdir(directory->content[directory->cursor]) != -1){
+                dir* temp = read_directory();
+                temp->parentdir = directory;
+                directory->dirlist[directory->cursor] = temp;
+            }
+            else{
+                return directory;
+            }
         }
         else { 
             chdir(directory->dirlist[directory->cursor]->path);
