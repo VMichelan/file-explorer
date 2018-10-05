@@ -7,6 +7,7 @@
 #include <ctype.h>
 
 #include "dir.h"
+#include "run.h"
 
 void* malloc_or_die(int size) {
     void* returnPrt = malloc(size);
@@ -193,26 +194,26 @@ int find_entry(dir* directory){
     return -1;
 }
 
-int run(char* argument){
-    int childPid,status;
-    char** arguments = (char**) malloc(sizeof(char)*3);
-    arguments[0] = malloc(sizeof(char)*6);
-    strcpy(arguments[0], "rifle");
-    arguments[1] = argument;
-    arguments[2] = (char*) NULL;
-    childPid = fork();
-    if(fork < 0){
-        fprintf(stderr,"FAILED FORK");
-        exit(EXIT_FAILURE);
-    }
-    if(childPid != 0){
-        waitpid(-1,&status,0);
-    }
-    else
-        execvp(arguments[0],arguments);
+/*int run(char* argument){*/
+    /*int childPid,status;*/
+    /*char** arguments = (char**) malloc(sizeof(char)*3);*/
+    /*arguments[0] = malloc(sizeof(char)*6);*/
+    /*strcpy(arguments[0], "rifle");*/
+    /*arguments[1] = argument;*/
+    /*arguments[2] = (char*) NULL;*/
+    /*childPid = fork();*/
+    /*if(fork < 0){*/
+        /*fprintf(stderr,"FAILED FORK");*/
+        /*exit(EXIT_FAILURE);*/
+    /*}*/
+    /*if(childPid != 0){*/
+        /*waitpid(-1,&status,0);*/
+    /*}*/
+    /*else*/
+        /*execvp(arguments[0],arguments);*/
 
-    return 0;
-}
+    /*return 0;*/
+/*}*/
 
 dir* up_dir(dir* directory){
     if(!strcmp(directory->path,"/"))
@@ -289,7 +290,7 @@ dir* open_entry(dir* directory,int up){
         return directory->dirlist[directory->cursor];
     }
     else{
-        run(directory->content[directory->cursor]);
+        run("rifle",directory->content[directory->cursor]);
         erase();
         refresh();
         curs_set(1);

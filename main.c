@@ -5,6 +5,7 @@
 #include <dirent.h>
 #include <locale.h>
 
+#include "run.h"
 #include "dir.h"
 #include "ui.h"
 
@@ -56,9 +57,7 @@ int main(int argc, char* argv[])
                     dir* temp = read_directory();
                     temp->parentdir = directory;
                     render_contents(w3,temp);
-                    /* Only displays and frees it, TO DO: save it in the directory */
                     insert_dir(directory,temp);
-                    /*free_dir(temp);*/
                     chdir(directory->path);
                 }
                 else {
@@ -131,6 +130,11 @@ int main(int argc, char* argv[])
 
 
                 break;
+
+            case 't':
+                open_terminal();
+                break;
+
             case 'q':
 
                 wclear(w1);
