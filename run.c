@@ -18,8 +18,10 @@ int run(char* cmd,char* argument){
         fprintf(stderr,"FAILED FORK");
         exit(EXIT_FAILURE);
     }
-    if(childPid == 0)
+    if(childPid == 0){
         execvp(arguments[0],arguments);
+        exit(EXIT_FAILURE);
+    }
 
     return 0;
 }
