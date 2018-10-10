@@ -136,10 +136,8 @@ int main(int argc, char* argv[])
                 break;
 
             case 'q':
-
-                wclear(w1);
-                wrefresh(w1);
-                delwin(w1);
+                clear();
+                refresh(); 
                 endwin();
                 return 0;
 
