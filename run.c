@@ -14,7 +14,7 @@ int run(char* cmd,char* argument){
     arguments[1] = argument;
     arguments[2] = (char*) NULL;
     childPid = fork();
-    if(fork < 0){
+    if(childPid < 0){
         fprintf(stderr,"FAILED FORK");
         exit(EXIT_FAILURE);
     }
