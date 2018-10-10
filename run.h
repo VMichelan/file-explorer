@@ -3,7 +3,15 @@
 
 #define TERMINAL "x-terminal-emulator"
 
-int run(char* cmd,char* argument);
+typedef struct configstruct configstruct;
+
+struct configstruct{
+    char* type;
+    char* program;
+    int interm;
+};
+
+int run(char* file);
 int open_terminal();
 
 #endif

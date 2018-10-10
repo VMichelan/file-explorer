@@ -290,7 +290,7 @@ dir* open_entry(dir* directory,int up){
         return directory->dirlist[directory->cursor];
     }
     else{
-        run("rifle",directory->content[directory->cursor]);
+        run(directory->content[directory->cursor]);
         erase();
         refresh();
         curs_set(1);
