@@ -106,6 +106,10 @@ int main(int argc, char* argv[])
                 directory = open_entry(directory,0);
                 break;
 
+            case 'L':
+                run(directory->content[directory->cursor],1);
+                break;
+
             case 'f':
                 mvwprintw(cmdw,0,0,"FIND MODE");
                 wrefresh(cmdw);
