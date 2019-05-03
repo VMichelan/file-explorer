@@ -200,7 +200,6 @@ dir* up_dir(dir* directory){
             chdir("..");
             dir* temp;
             temp = read_directory();
-            sort_dir(temp);
             chdir(directory->parentdir->path);
             directory->parentdir->parentdir = temp;
             insert_dir(directory->parentdir,directory);
@@ -210,30 +209,8 @@ dir* up_dir(dir* directory){
     return directory->parentdir;
 }
 
-dir* open_entry(dir* directory,int up){
-    int ctrl = 0;
-    if(!strcmp(directory->path,"/") && up == 1)
-        return directory;
-    if (up == 1){
-        if (directory->parentdir){
-            if(directory->parentdir->parentdir){
-                chdir("..");
-                return directory->parentdir;
-            }
-
-            else {
-                chdir("..");
-                chdir("..");
-                dir* temp;
-                temp = read_directory();
-                chdir(directory->parentdir->path);
-                directory->parentdir->parentdir = temp;
-                insert_dir(directory->parentdir,directory);
-                return directory->parentdir;
-            }
-        }
-    }
-    else if(directory->type[directory->cursor] == DT_DIR){
+dir* open_entry(dir* directory){
+    if(directory->type[directory->cursor] == DT_DIR){
         if(directory->dirlist[directory->cursor] == NULL){
             if (chdir(directory->content[directory->cursor]) != -1){
                 dir* temp = read_directory();

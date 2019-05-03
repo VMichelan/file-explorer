@@ -98,12 +98,12 @@ int main(int argc, char* argv[])
                 break;
 
             case 'h':
-                directory = open_entry(directory,1);
+                directory = up_dir(directory);
 
                 break;    
 
             case 'l':
-                directory = open_entry(directory,0);
+                directory = open_entry(directory);
                 break;
 
             case 'L':
@@ -117,7 +117,7 @@ int main(int argc, char* argv[])
                 temp = find_entry(directory);
                 if (temp >= 0){
                     directory->cursor = temp;
-                    directory = open_entry(directory,0);
+                    directory = open_entry(directory);
                     if(directory->type[directory->cursor] == DT_DIR)
                         directory->index = 0;
                 }
