@@ -61,13 +61,9 @@ void handle_resize(){
     delwin(pathw);
     delwin(cmdw);
     initui();
-    /*w = newwin(yMax-2,xMax,1,0);
-    pathw = newwin(1,xMax,0,0);
-    cmdw = newwin(1,xMax,yMax-1,0);*/
     wmove(cmdw,0,0);
     wclrtoeol(cmdw);
     wrefresh(cmdw);
-
 
 }
 

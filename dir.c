@@ -135,15 +135,6 @@ dir* read_directory(){
     dir_info->cursor = 0;
     dir_info->index = 0;
     dir_info->parentdir = NULL;
-    /*if (dir_info->parentdir == NULL && strlen(directory_path) >= 1){*/
-    /*chdir("..");*/
-    /*free_dir(dir_info->parentdir);*/
-    /*dir_info->parentdir = read_directory();*/
-    /*chdir(directory_path);*/
-    /*}*/
-    /*else{*/
-    /*dir_info->parentdir = NULL;*/
-    /*}*/
     sort_dir(dir_info);
     return dir_info;
 }
@@ -195,27 +186,6 @@ int find_entry(dir* directory){
     return -1;
 }
 
-/*int run(char* argument){*/
-    /*int childPid,status;*/
-    /*char** arguments = (char**) malloc(sizeof(char)*3);*/
-    /*arguments[0] = malloc(sizeof(char)*6);*/
-    /*strcpy(arguments[0], "rifle");*/
-    /*arguments[1] = argument;*/
-    /*arguments[2] = (char*) NULL;*/
-    /*childPid = fork();*/
-    /*if(fork < 0){*/
-        /*fprintf(stderr,"FAILED FORK");*/
-        /*exit(EXIT_FAILURE);*/
-    /*}*/
-    /*if(childPid != 0){*/
-        /*waitpid(-1,&status,0);*/
-    /*}*/
-    /*else*/
-        /*execvp(arguments[0],arguments);*/
-
-    /*return 0;*/
-/*}*/
-
 dir* up_dir(dir* directory){
     if(!strcmp(directory->path,"/"))
         return directory;
@@ -239,9 +209,6 @@ dir* up_dir(dir* directory){
     }
     return directory->parentdir;
 }
-
-
-
 
 dir* open_entry(dir* directory,int up){
     int ctrl = 0;
@@ -281,13 +248,6 @@ dir* open_entry(dir* directory,int up){
             chdir(directory->dirlist[directory->cursor]->path);
         }
 
-
-        /*dir* temp = directory;*/
-        /*chdir(directory->content[directory->cursor]);*/
-        /*directory = read_directory();*/
-        /*directory->parentdir = temp;*/
-        /*sort_dir(directory);*/
-        /*directory->cursor = 0;*/
         return directory->dirlist[directory->cursor];
     }
     else{
