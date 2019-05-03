@@ -197,6 +197,13 @@ dir* up_dir(dir* directory){
 
         else {
             chdir("..");
+            char* currentdir = malloc_or_die(sizeof(*currentdir)*PATH_SIZE);
+            getcwd(currentdir,1024);
+            if (!strcmp(currentdir,"/")) {
+                free(currentdir);
+                return directory->parentdir;
+            }
+            free(currentdir);
             chdir("..");
             dir* temp;
             temp = read_directory();

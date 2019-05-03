@@ -44,7 +44,7 @@ int main(int argc, char* argv[])
         yMax -= 1;
         print_path(pathw,directory->path);
         render_contents(w2,directory);
-        if(strlen(directory->path) > 1){
+        if(directory->parentdir){
             render_contents(w1,directory->parentdir);
         }
         else{
