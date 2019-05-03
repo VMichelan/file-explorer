@@ -154,6 +154,7 @@ void insert_dir(dir* directory,dir* ins){
         if(ins->path[i] == '/')
             j = i;
 
+    j++;
 
     for(i = 0;i < directory->dircount;i++)
         if(!strcmp(ins->path+j,directory->content[i]))
