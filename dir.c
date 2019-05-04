@@ -230,31 +230,21 @@ dir* up_dir(dir* directory) {
 }
 
 dir* open_entry(dir* directory) {
-    if (directory->type[directory->cursor] == DT_DIR) {
-        if (directory->dirlist[directory->cursor] == NULL) {
-            if (chdir(directory->content[directory->cursor]) != -1) {
-                dir* temp = read_directory();
-                temp->parentdir = directory;
-                directory->dirlist[directory->cursor] = temp;
-            }
-            else {
-                return directory;
-            }
+    if (directory->dirlist[directory->cursor] == NULL) {
+        if (chdir(directory->content[directory->cursor]) != -1) {
+            dir* temp = read_directory();
+            temp->parentdir = directory;
+            directory->dirlist[directory->cursor] = temp;
         }
-        else { 
-            chdir(directory->dirlist[directory->cursor]->path);
+        else {
+            return directory;
         }
+    }
+    else { 
+        chdir(directory->dirlist[directory->cursor]->path);
+    }
 
-        return directory->dirlist[directory->cursor];
-    }
-    else {
-        run(directory->content[directory->cursor],0);
-        erase();
-        refresh();
-        curs_set(1);
-        curs_set(0);
-        return directory;
-    }
+    return directory->dirlist[directory->cursor];
 }
 
 void move_cursor(dir* directory,int yMax,int number) {

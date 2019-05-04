@@ -102,7 +102,16 @@ int main(int argc, char* argv[])
                 break;    
 
             case 'l':
-                directory = open_entry(directory);
+                if (directory->type[directory->cursor] == DT_DIR) {
+                    directory = open_entry(directory);
+                }
+                else {
+                    run(directory->content[directory->cursor],0);
+                    erase();
+                    refresh();
+                    curs_set(1);
+                    curs_set(0);
+                }
                 break;
 
             case 'L':
