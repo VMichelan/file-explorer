@@ -7,7 +7,6 @@
 #include <ctype.h>
 
 #include "dir.h"
-#include "run.h"
 
 void* malloc_or_die(int size) {
     void* returnPrt = malloc(size);
