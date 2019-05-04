@@ -11,7 +11,7 @@
 
 void* malloc_or_die(int size) {
     void* returnPrt = malloc(size);
-    if ( !returnPrt ){
+    if (!returnPrt) {
         printw("FAILLED MALLOC");
         refresh();
         getch();
@@ -23,7 +23,7 @@ void* malloc_or_die(int size) {
 
 void* realloc_or_die(void* prt,int size) {
     void* returnPrt = realloc(prt,size);
-    if ( !returnPrt ){
+    if (!returnPrt) {
         printw("FAILLED REALLOC");
         refresh();
         getch();
@@ -36,7 +36,7 @@ void* realloc_or_die(void* prt,int size) {
 
 void* calloc_or_die(int size,int size2) {
     void* returnPrt = calloc(size,size2);
-    if ( !returnPrt ) {
+    if (!returnPrt) {
         printw("FAILLED CALLOC");
         refresh();
         getch();
@@ -49,9 +49,10 @@ void* calloc_or_die(int size,int size2) {
 
 int free_dir(dir* dir_info){
     int i;
-    if(dir_info == NULL)
+    if (dir_info == NULL) {
         return 0;
-    for(i = 0; i < dir_info->size;i++){
+    }
+    for (i = 0; i < dir_info->size;i++) {
         free(dir_info->content[i]); 
     }
     free(dir_info->type);
@@ -63,9 +64,9 @@ void sort_dir(dir* directory){
     int i,j;
     char* temp;
     unsigned char temp2;
-    for(i = 0;i<directory->size;i++){
-        for(j =0;j < directory->size;j++){
-            if(strcasecmp(directory->content[i],directory->content[j]) < 0){
+    for (i = 0;i<directory->size;i++) {
+        for (j =0;j < directory->size;j++) {
+            if (strcasecmp(directory->content[i],directory->content[j]) < 0) {
 
                 temp = directory->content[i];
                 directory->content[i] = directory->content[j];
@@ -81,22 +82,22 @@ void sort_dir(dir* directory){
     char** aux = (char**) malloc(sizeof(char*)*directory->size);
     unsigned char* auxtype = (unsigned char*) malloc(sizeof(char)*directory->size);
     j = 0;
-    for(i = 0;i < directory->size;i++){
-        if(directory->type[i] == DT_DIR){
+    for (i = 0;i < directory->size;i++) {
+        if (directory->type[i] == DT_DIR) {
             aux[j] = directory->content[i];
             directory->content[i] = NULL;
             auxtype[j] = DT_DIR;
             j++;
         }
     }
-    for(i = 0;i < directory->size;i++){
-        if (directory->content[i] != NULL){
+    for (i = 0;i < directory->size;i++) {
+        if (directory->content[i] != NULL) {
             aux[j] = directory->content[i];
             auxtype[j] = directory->type[i];
             j++;
         }
     }
-    for(i = 0;i < directory->size;i++){
+    for (i = 0;i < directory->size;i++) {
         directory->content[i] = aux[i];
         directory->type[i] = auxtype[i];
     }
@@ -104,7 +105,7 @@ void sort_dir(dir* directory){
     free(auxtype);
 }
 
-dir* read_directory(){
+dir* read_directory() {
     char* directory_path = (char*) malloc_or_die(PATH_SIZE);
     getcwd(directory_path,PATH_SIZE);
     DIR* directory = opendir(directory_path);
@@ -114,14 +115,15 @@ dir* read_directory(){
     dir_info->content = (char**) calloc_or_die(1,sizeof(char*));
     dir_info->type = (unsigned char*) calloc_or_die(1,sizeof(char));
     int dircount = 0;
-    while(directory_entry = readdir(directory)){
+    while (directory_entry = readdir(directory)) {
 
-        if(directory_entry->d_name[0] != '.' && strcmp(directory_entry->d_name,"..")){
+        if (directory_entry->d_name[0] != '.' && strcmp(directory_entry->d_name,"..")) {
             dir_info->content = (char**) realloc_or_die(dir_info->content,sizeof(char*)*i+1);
             dir_info->content[i] = (char*) calloc_or_die(1,FILENAME_SIZE);
             strcpy(dir_info->content[i],directory_entry->d_name);
-            if(directory_entry->d_type == DT_DIR)
+            if(directory_entry->d_type == DT_DIR) {
                 dircount++;
+            }
 
             dir_info->type = (unsigned char*) realloc_or_die(dir_info->type,sizeof(unsigned char)*i+1);
             dir_info->type[i] = directory_entry->d_type;
@@ -139,46 +141,56 @@ dir* read_directory(){
     return dir_info;
 }
 
-void insert_dir(dir* directory,dir* ins){
+void insert_dir(dir* directory,dir* ins) {
     int i,j = 0;
-    for(i = 0; i < strlen(ins->path);i++)
-        if(ins->path[i] == '/')
+    for (i = 0; i < strlen(ins->path);i++) {
+        if (ins->path[i] == '/') {
             j = i;
+        }
+    }
 
     j++;
 
-    for(i = 0;i < directory->dircount;i++)
-        if(!strcmp(ins->path+j,directory->content[i]))
-            break;
+    for (i = 0;i < directory->dircount;i++) {
+        if (!strcmp(ins->path+j,directory->content[i])) {
+            break; 
+        }
+    }
 
-    if(i < directory->dircount)
+    if (i < directory->dircount) {
         directory->dirlist[i] = ins;
+    }
     return;
 }
 
-int find_entry(dir* directory){
+int find_entry(dir* directory) {
     int i,j,count = 0;
     char ch;
     int* list = (int*) malloc(sizeof(int)*directory->size);
-    for (i = 0; i < directory->size;i++)
+    for (i = 0; i < directory->size;i++) {
         list[i] = 1;
+    }
     i = 0;
-    while((ch = getch()) != 27){
-        if(ch == 10 || count == 1){
-            for(int h = 0;h < directory->size;h++)
-                if(list[h] == 1){
+    while ((ch = getch()) != 27) {
+        if (ch == 10 || count == 1) {
+            for (int h = 0;h < directory->size;h++) {
+                if (list[h] == 1) {
                     free(list);
                     return h;
-                }
+                } 
+            }
             return -1;
         }
         count = 0;
-        for(j = 0;j < directory->size;j++){
-            if(list[j] == 1)
-                if(tolower(directory->content[j][i]) != ch)
+        for (j = 0;j < directory->size;j++) {
+            if (list[j] == 1) {
+                if (tolower(directory->content[j][i]) != ch) {
                     list[j] = 0;
-                else 
+                }
+                else {
                     count++;
+                }
+            }
         }
         i++;
     }
@@ -186,11 +198,12 @@ int find_entry(dir* directory){
     return -1;
 }
 
-dir* up_dir(dir* directory){
-    if(!strcmp(directory->path,"/"))
+dir* up_dir(dir* directory) {
+    if (!strcmp(directory->path,"/")) {
         return directory;
-    if (directory->parentdir){
-        if(directory->parentdir->parentdir){
+    }
+    if (directory->parentdir) {
+        if (directory->parentdir->parentdir) {
             chdir("..");
             return directory->parentdir;
         }
@@ -216,15 +229,15 @@ dir* up_dir(dir* directory){
     return directory->parentdir;
 }
 
-dir* open_entry(dir* directory){
-    if(directory->type[directory->cursor] == DT_DIR){
-        if(directory->dirlist[directory->cursor] == NULL){
-            if (chdir(directory->content[directory->cursor]) != -1){
+dir* open_entry(dir* directory) {
+    if (directory->type[directory->cursor] == DT_DIR) {
+        if (directory->dirlist[directory->cursor] == NULL) {
+            if (chdir(directory->content[directory->cursor]) != -1) {
                 dir* temp = read_directory();
                 temp->parentdir = directory;
                 directory->dirlist[directory->cursor] = temp;
             }
-            else{
+            else {
                 return directory;
             }
         }
@@ -234,7 +247,7 @@ dir* open_entry(dir* directory){
 
         return directory->dirlist[directory->cursor];
     }
-    else{
+    else {
         run(directory->content[directory->cursor],0);
         erase();
         refresh();
@@ -244,25 +257,28 @@ dir* open_entry(dir* directory){
     }
 }
 
-void move_cursor(dir* directory,int yMax,int number){
-    if(number < 0){
-        if(directory->cursor > 0){
+void move_cursor(dir* directory,int yMax,int number) {
+    if(number < 0) {
+        if(directory->cursor > 0) {
             directory->cursor += number;
-            if (directory->cursor < 0)
+            if (directory->cursor < 0) {
                 directory->cursor = 0;
-            if (directory->index > directory->cursor){
+            }
+            if (directory->index > directory->cursor) {
                 directory->index = directory->cursor;
                 return;
             }
         }
     }
-    else{
-        if (directory->cursor < directory->size){
+    else {
+        if (directory->cursor < directory->size) {
             directory->cursor += number;
-            if(directory->cursor > directory->size-1)
+            if(directory->cursor > directory->size-1) {
                 directory->cursor = directory->size-1;
-            if (directory->cursor >= directory->index+yMax-1)
+            }
+            if (directory->cursor >= directory->index+yMax-1) {
                 directory->index = (directory->cursor - yMax)+2;
+            }
         }
     }
 

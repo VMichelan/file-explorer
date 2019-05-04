@@ -39,21 +39,21 @@ int main(int argc, char* argv[])
     directory->parentdir = read_directory();
     insert_dir(directory->parentdir,directory);
     chdir(directory->path);
-    while(true){
+    while (true) {
         getmaxyx(stdscr,yMax,xMax); 
         yMax -= 1;
         print_path(pathw,directory->path);
         render_contents(w2,directory);
-        if(directory->parentdir){
+        if (directory->parentdir) {
             render_contents(w1,directory->parentdir);
         }
-        else{
+        else {
             werase(w1);
             wrefresh(w1);
         }
-        if(directory->type[directory->cursor] == DT_DIR){
-            if(directory->dirlist[directory->cursor] == NULL){
-                if(chdir(directory->content[directory->cursor]) != -1){
+        if (directory->type[directory->cursor] == DT_DIR) {
+            if (directory->dirlist[directory->cursor] == NULL) {
+                if (chdir(directory->content[directory->cursor]) != -1) {
                     dir* temp = read_directory();
                     temp->parentdir = directory;
                     render_contents(w3,temp);
@@ -76,11 +76,11 @@ int main(int argc, char* argv[])
 
 
         ch = getchar();
-        if(ch == KEY_RESIZE){
+        if (ch == KEY_RESIZE) {
             handle_resize();
             continue;
         }
-        switch (ch){
+        switch (ch) {
             case 'j':
                 move_cursor(directory,yMax,1);
                 break;
@@ -115,11 +115,12 @@ int main(int argc, char* argv[])
                 wrefresh(cmdw);
                 render_contents(w2,directory);
                 temp = find_entry(directory);
-                if (temp >= 0){
+                if (temp >= 0) {
                     directory->cursor = temp;
                     directory = open_entry(directory);
-                    if(directory->type[directory->cursor] == DT_DIR)
+                    if (directory->type[directory->cursor] == DT_DIR) {
                         directory->index = 0;
+                    }
                 }
 
                 render_contents(w2,directory);
@@ -128,8 +129,9 @@ int main(int argc, char* argv[])
                 wrefresh(cmdw);
                 timeout(250);
                 ch = getch();
-                if(ch != 'h' && ch != 'l')
+                if (ch != 'h' && ch != 'l') {
                     ungetch(ch);
+                }
                 timeout(-1);
 
 

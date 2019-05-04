@@ -29,7 +29,7 @@ int utf8_strlen(char* str,int len)
     return q;
 }
 
-void initui(){
+void initui() {
     int yMax,xMax;
     getmaxyx(stdscr,yMax,xMax);
     w1 = newwin(yMax-2,xMax*W1FACTOR,1,0);
@@ -41,14 +41,14 @@ void initui(){
 
 }
 
-int getchar(){
+int getchar() {
     return wgetch(w2);
 }
 
-void handle_resize(){
+void handle_resize() {
     int yMax,xMax,i=0;
     getmaxyx(stdscr,yMax,xMax); 
-    while (i < yMax){
+    while (i < yMax) {
         wmove(w3,i,0);
         wclrtoeol(w3);
         i++;
@@ -67,7 +67,7 @@ void handle_resize(){
 
 }
 
-void print_path(WINDOW* w,char* path){
+void print_path(WINDOW* w,char* path) {
     wmove(w,0,0);
     wclrtoeol(w);
     wattron(w,COLOR_PAIR(2));
@@ -76,13 +76,14 @@ void print_path(WINDOW* w,char* path){
     wrefresh(w);
 }
 
-void render_contents(WINDOW* w,dir* directory){
-    if (!directory)
+void render_contents(WINDOW* w,dir* directory) {
+    if (!directory) {
         return;
+    }
     int i = 0,j,yMax,xMax,len,count,index = directory->index;
     char ch;
     getmaxyx(w,yMax,xMax);
-    if(directory->size == 0){
+    if (directory->size == 0) {
         mvwprintw(w,i,0," ");
         wclrtoeol(w);
         wattron(w,COLOR_PAIR(3));
@@ -90,35 +91,40 @@ void render_contents(WINDOW* w,dir* directory){
         wattroff(w,COLOR_PAIR(3));
         i++;
     }
-    while(index < directory->size && i < yMax){
-        if(directory->cursor == index)
+    while (index < directory->size && i < yMax) {
+        if (directory->cursor == index) {
             wattron(w,A_STANDOUT);
-        else
+        }
+        else {
             wattroff(w,A_STANDOUT);
-        if(directory->type[index] == DT_DIR)
+        }   
+        if (directory->type[index] == DT_DIR) {
             wattron(w,COLOR_PAIR(1));
+        }
 
         len = strlen(directory->content[index]);
         len = utf8_strlen(directory->content[index],len);
 
         mvwprintw(w,i,0," ");
-        if (len > xMax){
+        if (len > xMax) {
             ch = directory->content[index][xMax];
             directory->content[index][xMax] = '\0';
             mvwprintw(w,i,1,"%s\n",directory->content[index]);
             directory->content[index][xMax] = ch;
         }
-        else
+        else {
             mvwprintw(w,i,1,"%s\n",directory->content[index]);
+        }
 
-        for(j = len+1;j < xMax;j++)
+        for (j = len+1;j < xMax;j++) {
             mvwprintw(w,i,j," ");
+        }
 
         index++;
         i++;
         wattroff(w,COLOR_PAIR(1));
    }
-    while (i < yMax){
+    while (i < yMax) {
         wmove(w,i,0);
         wclrtoeol(w);
         i++;
