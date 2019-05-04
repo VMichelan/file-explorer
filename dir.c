@@ -284,3 +284,12 @@ void move_cursor(dir* directory,int yMax,int number) {
 
 }
 
+dir* initdir() {
+    dir* directory = read_directory();
+    chdir("..");
+    directory->parentdir = read_directory();
+    insert_dir(directory->parentdir,directory);
+    chdir(directory->path);
+    return directory;
+}
+

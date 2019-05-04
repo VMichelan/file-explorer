@@ -28,17 +28,12 @@ void init(){
 
 int main(int argc, char* argv[])
 {   
-    init();
-    initui();
     int yMax,xMax;
     int ch;
     int temp = 0;
-    getmaxyx(stdscr,yMax,xMax);
-    dir* directory = read_directory();
-    chdir("..");
-    directory->parentdir = read_directory();
-    insert_dir(directory->parentdir,directory);
-    chdir(directory->path);
+    init();
+    initui();
+    dir* directory = initdir();
     while (true) {
         getmaxyx(stdscr,yMax,xMax); 
         yMax -= 1;
