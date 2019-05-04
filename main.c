@@ -26,6 +26,40 @@ void init(){
     refresh();
 }
 
+void display_dir(dir* directory) {
+    print_path(pathw,directory->path);
+    render_contents(w2,directory);
+    if (directory->parentdir) {
+        render_contents(w1,directory->parentdir);
+    }
+    else {
+        werase(w1);
+        wrefresh(w1);
+    }
+    if (directory->type[directory->cursor] == DT_DIR) {
+        if (directory->dirlist[directory->cursor] == NULL) {
+            if (chdir(directory->content[directory->cursor]) != -1) {
+                dir* temp = read_directory();
+                temp->parentdir = directory;
+                render_contents(w3,temp);
+                insert_dir(directory,temp);
+                chdir(directory->path);
+            }
+            else {
+                werase(w3);
+                wrefresh(w3);
+            }
+        }
+        else {
+            render_contents(w3,directory->dirlist[directory->cursor]);
+        }
+    }
+    else {
+        werase(w3);
+        wrefresh(w3);
+    }
+}
+
 int main(int argc, char* argv[])
 {   
     int yMax,xMax;
@@ -37,38 +71,8 @@ int main(int argc, char* argv[])
     while (true) {
         getmaxyx(stdscr,yMax,xMax); 
         yMax -= 1;
-        print_path(pathw,directory->path);
-        render_contents(w2,directory);
-        if (directory->parentdir) {
-            render_contents(w1,directory->parentdir);
-        }
-        else {
-            werase(w1);
-            wrefresh(w1);
-        }
-        if (directory->type[directory->cursor] == DT_DIR) {
-            if (directory->dirlist[directory->cursor] == NULL) {
-                if (chdir(directory->content[directory->cursor]) != -1) {
-                    dir* temp = read_directory();
-                    temp->parentdir = directory;
-                    render_contents(w3,temp);
-                    insert_dir(directory,temp);
-                    chdir(directory->path);
-                }
-                else {
-                    werase(w3);
-                    wrefresh(w3);
-                }
-            }
-            else {
-                render_contents(w3,directory->dirlist[directory->cursor]);
-            }
-        }
-        else {
-            werase(w3);
-            wrefresh(w3);
-        }
 
+        display_dir(directory);
 
         ch = getchar();
         if (ch == KEY_RESIZE) {
