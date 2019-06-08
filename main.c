@@ -149,6 +149,10 @@ int main(int argc, char* argv[])
                 open_terminal();
                 break;
 
+            case 'r':
+                directory = reload_dir(directory);
+                break;
+
             case 'q':
                 clear();
                 refresh(); 

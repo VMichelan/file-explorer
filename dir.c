@@ -282,3 +282,43 @@ dir* initdir() {
     return directory;
 }
 
+dir* reload_dir(dir* directory) {
+    dir* newdirectory = read_directory();
+
+    for (int i = 0; i < directory->dircount; i++) {
+        if (directory->dirlist[i]) {
+            directory->dirlist[i]->parentdir = newdirectory;
+        }
+    }
+
+    for (int i = 0; i < newdirectory->dircount; i++) {
+        for (int j = i; j < directory->dircount; j++) {
+            if (!strcmp(newdirectory->content[i], directory->content[j])) {
+                newdirectory->dirlist[i] = directory->dirlist[j];
+                directory->dirlist[j] = NULL;
+                break;
+            }
+        }
+    }
+
+    // frees any dir that doesn't exist anymore
+    for (int i = 0; i < directory->dircount; i++)
+        free_dir(directory->dirlist[i]);
+
+    if (directory->parentdir) {
+        for (int i = 0; i < directory->parentdir->dircount; i++) {
+            if (directory->parentdir->dirlist[i] == directory) {
+                directory->parentdir->dirlist[i] = newdirectory;
+                break;
+            }
+        }
+    }
+
+
+    newdirectory->parentdir = directory->parentdir;
+    newdirectory->cursor = directory->cursor;
+    newdirectory->index = directory->index;
+
+    free_dir(directory);
+    return newdirectory;
+}
