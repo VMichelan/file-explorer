@@ -56,16 +56,24 @@ int run_(char** arguments, int wait) {
     if (childPid < 0) {
         return -1;
     }
-    if (childPid == 0) {
-        execvp(arguments[0],arguments);
-        exit(EXIT_FAILURE);
-    }
-    else {
-        if (wait) {
-            waitpid(childPid,&status,0); 
-        }
 
+    if (childPid == 0) {
+
+        int secondChildPid = fork();
+        if (secondChildPid == 0) {
+            execvp(arguments[0],arguments);
+            exit(EXIT_FAILURE);
+        }
+        else {
+            if (wait) {
+                int secondStatus;
+                waitpid(secondChildPid,&secondStatus,0); 
+            }
+            exit(EXIT_SUCCESS);
+        }
     }
+
+    waitpid(childPid,&status,0); 
 
     return 0;
 }
