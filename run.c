@@ -3,49 +3,35 @@
 #include <sys/wait.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ncurses.h>
 
 #include "run.h"
 
-#define CONFIG_LENGTH 3
+#define LEN(x) sizeof(x)/sizeof(*x)
 
-configstruct config[] = {
-    {"text","vim",1},
-    {"image","feh",0},
-    {"pdf","mupdf",0}
-};
+char* terminal[] = {"urxvt", "-e"};
+char* fileopener = "rifle";
+char* terminaleditor[] = {"vim"};
 
-int config_index(char* file) {
-        FILE *fp;
-        char path[1035];
-        int i;
+char istextfile(char* filename) {
+    FILE* fp;
+    char output[1024];
+    char* cmd = calloc(1024, sizeof(*cmd));
+    if (!cmd) {
+        exit(EXIT_FAILURE);
+    }
+    sprintf(cmd, "file -ib \"%s\"", filename);
+    fp = popen(cmd, "r");
+    if (fp == NULL) {
+        return -1;
+    }
 
-        char* cmd = calloc(sizeof(char)*1024,1);
-        if (!cmd) {
-            exit(EXIT_FAILURE);
-        }
-        sprintf(cmd, "file --mime-type \"%s\"",file);
-        fp = popen(cmd, "r");
-        if (fp == NULL) {
-            return -1;
-        }
+    fgets(output, sizeof(output)-1, fp);
 
-        fgets(path, sizeof(path)-1, fp);
+    free(cmd);
+    pclose(fp);
 
-        free(cmd);
-        pclose(fp);
-
-        for (i = 0;i < CONFIG_LENGTH;i++) {
-            if (strstr(path,config[i].type)) {
-                break;
-            }
-        }
-
-        if (i >= CONFIG_LENGTH) {
-            return -1;
-        }
-        else {
-            return i;
-        }
+    return !strstr(output, "charset=binary");
 }
 
 int run_(char** arguments, int wait) {
@@ -83,43 +69,39 @@ int run_(char** arguments, int wait) {
     return 0;
 }
 
-
-
 int run(char* file,int newterm) {
-    int configindex = config_index(file);
-    if (configindex == -1) {
-        return -1;
+    char** arguments;
+    int wait;
+
+    if (terminaleditor[0] && istextfile(file)) {
+        if (newterm) {
+            wait = 0;
+            arguments = malloc(sizeof(*arguments)* (LEN(terminal) + LEN(terminaleditor) + 2));
+            arguments[0] = terminal[0];
+            arguments[1] = terminal[1];
+            arguments[2] = terminaleditor[0];
+            arguments[3] = file;
+            arguments[4] = NULL;
+        }
+        else {
+            wait = 1;
+            arguments = malloc(sizeof(*arguments)* (LEN(terminaleditor) + 2));
+            arguments[0] = terminaleditor[0];
+            arguments[1] = file;
+            arguments[2] = NULL;
+        }
+
     }
-    int argumentindex = 0;
-    int wait = config[configindex].interm;
-    char** arguments = malloc(sizeof(char*)*5);
-    if (newterm == 1) {
+    else {
         wait = 0;
-        arguments[0] = malloc(sizeof(char)*1024); 
-        arguments[1] = malloc(sizeof(char)*1024); 
-
-        strcpy(arguments[0],"urxvt");
-        strcpy(arguments[1],"-e");
-
-        argumentindex = argumentindex + 2;
+        arguments = malloc(sizeof(*arguments) * 3);
+        arguments[0] = fileopener;
+        arguments[1] = file;
+        arguments[2] = NULL;
     }
-
-
-
-    arguments[argumentindex] = malloc(sizeof(char)*1024);
-    arguments[argumentindex+1] = malloc(sizeof(char)*1024);
-    arguments[argumentindex+2] = (char*) NULL;
-    strcpy(arguments[argumentindex], config[configindex].program);
-    strcpy(arguments[argumentindex+1],file);
 
     run_(arguments,wait);
 
-    free(arguments[argumentindex]);
-    free(arguments[argumentindex+1]);
-    if (newterm == 1) {
-        free(arguments[0]);
-        free(arguments[1]);
-    }
     free(arguments);
 
     return wait;
@@ -127,11 +109,8 @@ int run(char* file,int newterm) {
 
 int open_terminal() {
     char** arguments = malloc(sizeof(char*)*2);
-    arguments[0] = malloc(sizeof(char)*1024);
-    strcpy(arguments[0],TERMINAL);
+    arguments[0] = terminal[0]; 
     arguments[1] = (char*) NULL;
     int returnvalue = run_(arguments,0);
-    free(arguments[0]);
-    free(arguments);
     return returnvalue;
 }
