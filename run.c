@@ -61,6 +61,11 @@ int run_(char** arguments, int wait) {
 
         int secondChildPid = fork();
         if (secondChildPid == 0) {
+            if (!wait) {
+                freopen("/dev/null", "r", stdin);
+                freopen("/dev/null", "w", stdout);
+                freopen("/dev/null", "w", stderr);
+            }
             execvp(arguments[0],arguments);
             exit(EXIT_FAILURE);
         }
@@ -117,7 +122,7 @@ int run(char* file,int newterm) {
     }
     free(arguments);
 
-    return 0;
+    return wait;
 }
 
 int open_terminal() {
