@@ -10,7 +10,7 @@
 #define LEN(x) sizeof(x)/sizeof(*x)
 
 char* terminal[] = {"urxvt", "-e"};
-char* fileopener = "rifle";
+char* fileopener[] = {"rifle"};
 char* terminaleditor[] = {"vim"};
 
 char istextfile(char* filename) {
@@ -72,33 +72,40 @@ int run_(char** arguments, int wait) {
 int run(char* file,int newterm) {
     char** arguments;
     int wait;
+    int argumentindex = 0;
 
     if (terminaleditor[0] && istextfile(file)) {
         if (newterm) {
             wait = 0;
             arguments = malloc(sizeof(*arguments)* (LEN(terminal) + LEN(terminaleditor) + 2));
-            arguments[0] = terminal[0];
-            arguments[1] = terminal[1];
-            arguments[2] = terminaleditor[0];
-            arguments[3] = file;
-            arguments[4] = NULL;
+
+            for (int i = 0; i < LEN(terminal); i++) {
+                arguments[argumentindex++] = terminal[i];
+            }
+
         }
         else {
             wait = 1;
             arguments = malloc(sizeof(*arguments)* (LEN(terminaleditor) + 2));
-            arguments[0] = terminaleditor[0];
-            arguments[1] = file;
-            arguments[2] = NULL;
+        }
+
+        for (int i = 0; i < LEN(terminaleditor); i++) {
+            arguments[argumentindex++] = terminaleditor[i];
         }
 
     }
     else {
         wait = 0;
-        arguments = malloc(sizeof(*arguments) * 3);
-        arguments[0] = fileopener;
-        arguments[1] = file;
-        arguments[2] = NULL;
+        arguments = malloc(sizeof(*arguments) * (LEN(fileopener) + 2));
+
+        for (int i = 0; i < LEN(fileopener); i++) {
+            arguments[argumentindex++] = fileopener[i];
+        }
+
     }
+
+    arguments[argumentindex++] = file;
+    arguments[argumentindex++] = NULL;
 
     run_(arguments,wait);
 
