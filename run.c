@@ -31,7 +31,7 @@ char istextfile(char* filename) {
     free(cmd);
     pclose(fp);
 
-    return !strstr(output, "charset=binary");
+    return !strstr(output, "charset=binary") || strstr(output, "inode/x-empty");
 }
 
 int run_(char** arguments, int wait) {
