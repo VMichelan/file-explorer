@@ -153,6 +153,12 @@ int main(int argc, char* argv[])
                 directory = reload_dir(directory);
                 break;
 
+            case 'X':
+                endwin();
+                extract_file(directory->content[directory->cursor]);
+                directory = reload_dir(directory);
+                break;
+
             case 'q':
                 clear();
                 refresh(); 

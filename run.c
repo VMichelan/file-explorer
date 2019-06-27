@@ -12,6 +12,7 @@
 char* terminal[] = {"urxvt", "-e"};
 char* fileopener[] = {"rifle"};
 char* terminaleditor[] = {"vim"};
+char* extractcmd[] = {"atool", "-x"};
 
 char istextfile(char* filename) {
     FILE* fp;
@@ -120,4 +121,18 @@ int open_terminal() {
     arguments[1] = (char*) NULL;
     int returnvalue = run_(arguments,0);
     return returnvalue;
+}
+
+void extract_file(char* filename) {
+    char** arguments = malloc(sizeof(*arguments) * (LEN(extractcmd) + 2));
+    int i;
+    for (i = 0; i < LEN(extractcmd); i++) {
+        arguments[i] = extractcmd[i];
+    }
+    arguments[i++] = filename;
+    arguments[i++] = (char*) NULL;
+
+    run_(arguments, 1);
+
+    free(arguments);
 }
