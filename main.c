@@ -9,6 +9,8 @@
 #include "dir.h"
 #include "ui.h"
 
+#define CTRL(x) (x - 64)
+
 void init(){
     setlocale(LC_ALL, "en_US.utf8");
     initscr();
@@ -84,16 +86,18 @@ int main(int argc, char* argv[])
                 move_cursor(directory,yMax,1);
                 break;
 
+            case CTRL('D'):
             case KEY_NPAGE:
-                move_cursor(directory,yMax,yMax-5);
+                move_cursor(directory,yMax,(yMax/2));
                 break;
 
             case 'k':
                 move_cursor(directory,yMax,-1);
                 break;
 
+            case CTRL('U'):
             case KEY_PPAGE:
-                move_cursor(directory,yMax,(yMax-5)*-1);
+                move_cursor(directory,yMax,(-yMax/2));
                 break;
 
             case 'h':
