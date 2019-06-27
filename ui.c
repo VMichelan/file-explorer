@@ -1,8 +1,5 @@
-#include <string.h>
-#include <stdlib.h>
 #include <ncurses.h>
 #include <dirent.h>
-#include <unistd.h>
 
 #include "dir.h"
 
