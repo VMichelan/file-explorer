@@ -4,6 +4,7 @@
 int run(char* file,int newterm);
 int open_terminal();
 void extract_file(char* filename);
+void run_shell();
 
 #endif
 

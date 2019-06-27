@@ -14,6 +14,9 @@ char* fileopener[] = {"rifle"};
 char* terminaleditor[] = {"vim"};
 char* extractcmd[] = {"atool", "-x"};
 
+// if NULL use $SHELL
+char* shell = NULL;
+
 char istextfile(char* filename) {
     FILE* fp;
     char output[1024];
@@ -134,5 +137,18 @@ void extract_file(char* filename) {
 
     run_(arguments, 1);
 
+    free(arguments);
+}
+
+void run_shell() {
+    if (!shell) {
+        shell = getenv("SHELL");
+    }
+    char** arguments = malloc(sizeof(*arguments) * 2);
+    arguments[0] = shell;
+    arguments[1] = (char *)NULL;
+    
+    run_(arguments, 1);
+    
     free(arguments);
 }
