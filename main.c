@@ -106,16 +106,13 @@ int main(int argc, char* argv[])
                     directory = open_entry(directory);
                 }
                 else {
-                    run(directory->content[directory->cursor],0);
-                    erase();
-                    refresh();
-                    curs_set(1);
-                    curs_set(0);
+                    endwin();
+                    run(directory->content[directory->cursor],1);
                 }
                 break;
 
             case 'L':
-                run(directory->content[directory->cursor],1);
+                run(directory->content[directory->cursor],0);
                 break;
 
             case 'f':

@@ -73,14 +73,12 @@ int run_(char** arguments, int wait) {
     return 0;
 }
 
-int run(char* file,int newterm) {
+int run(char* file,int wait) {
     char** arguments;
-    int wait;
     int argumentindex = 0;
 
     if (terminaleditor[0] && istextfile(file)) {
-        if (newterm) {
-            wait = 0;
+        if (!wait) {
             arguments = malloc(sizeof(*arguments)* (LEN(terminal) + LEN(terminaleditor) + 2));
 
             for (int i = 0; i < LEN(terminal); i++) {
@@ -89,7 +87,6 @@ int run(char* file,int newterm) {
 
         }
         else {
-            wait = 1;
             arguments = malloc(sizeof(*arguments)* (LEN(terminaleditor) + 2));
         }
 
@@ -99,7 +96,6 @@ int run(char* file,int newterm) {
 
     }
     else {
-        wait = 0;
         arguments = malloc(sizeof(*arguments) * (LEN(fileopener) + 2));
 
         for (int i = 0; i < LEN(fileopener); i++) {
