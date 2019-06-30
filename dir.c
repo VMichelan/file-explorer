@@ -129,6 +129,9 @@ dir* read_directory() {
             i++;
         }
     }
+
+    closedir(directory);
+
     dir_info->dirlist = calloc_or_die((dircount+1),sizeof(dir*));
     dir_info->dircount = dircount;
     dir_info->path = directory_path;
