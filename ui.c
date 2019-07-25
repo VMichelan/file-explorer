@@ -7,7 +7,7 @@
 #define W2FACTOR 2/5
 #define W3FACTOR 2/5
 
-WINDOW *w1,*w2,*w3,*cmdw,*pathw;
+WINDOW *w1, *w2, *w3, *w2w3, *cmdw, *pathw, *wbetweenw2w3;
 
 void initui() {
     int yMax,xMax;
@@ -15,14 +15,11 @@ void initui() {
     w1 = newwin(yMax-2,xMax*W1FACTOR,1,0);
     w2 = newwin(yMax-2,xMax*W2FACTOR,1,xMax*W1FACTOR+1);
     w3 = newwin(yMax-2,xMax*W3FACTOR,1,(xMax*W1FACTOR+1)+(xMax*W2FACTOR)+1);
+    w2w3 = newwin(yMax-2, xMax*W2FACTOR + xMax*W3FACTOR, 1, xMax*W1FACTOR+1);
     pathw = newwin(1,xMax,0,0);
     cmdw = newwin(1,xMax,yMax-1,0);
-    keypad(w2,TRUE);
+    wbetweenw2w3 = newwin(yMax-2, 1, 1, xMax*W1FACTOR + xMax*W2FACTOR + 1);
 
-}
-
-int getchar() {
-    return wgetch(w2);
 }
 
 void handle_resize() {
@@ -38,8 +35,10 @@ void handle_resize() {
     delwin(w1);
     delwin(w2);
     delwin(w3);
+    delwin(w2w3);
     delwin(pathw);
     delwin(cmdw);
+    delwin(wbetweenw2w3);
     initui();
     wmove(cmdw,0,0);
     wclrtoeol(cmdw);

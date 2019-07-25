@@ -23,14 +23,14 @@ void init(){
     noecho();
     curs_set(0);
     keypad(stdscr,TRUE);
-    keypad(w2,TRUE);
     set_escdelay(50);
     refresh();
 }
 
 void display_dir(dir* directory) {
     print_path(pathw,directory->path);
-    render_contents(w2,directory);
+    werase(wbetweenw2w3);
+    wrefresh(wbetweenw2w3);
     if (directory->parentdir) {
         render_contents(w1,directory->parentdir);
     }
@@ -46,19 +46,20 @@ void display_dir(dir* directory) {
                 render_contents(w3,temp);
                 insert_dir(directory,temp);
                 chdir(directory->path);
+                render_contents(w2, directory);
+                render_contents(w3, temp);
             }
             else {
-                werase(w3);
-                wrefresh(w3);
+                render_contents(w2w3, directory);
             }
         }
         else {
+            render_contents(w2, directory);
             render_contents(w3,directory->dirlist[directory->cursor]);
         }
     }
     else {
-        werase(w3);
-        wrefresh(w3);
+        render_contents(w2w3, directory);
     }
 }
 
@@ -76,7 +77,7 @@ int main(int argc, char* argv[])
 
         display_dir(directory);
 
-        ch = getchar();
+        ch = getch();
         if (ch == KEY_RESIZE) {
             handle_resize();
             continue;
