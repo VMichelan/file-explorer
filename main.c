@@ -28,7 +28,7 @@ void init(){
 }
 
 void display_dir(dir* directory) {
-    print_path(pathw,directory->path);
+    print_path(directory->path);
     werase(wbetweenw2w3);
     wrefresh(wbetweenw2w3);
     if (directory->parentdir) {

@@ -37,13 +37,13 @@ void handle_resize() {
 
 }
 
-void print_path(WINDOW* w,char* path) {
-    wmove(w,0,0);
-    wclrtoeol(w);
-    wattron(w,COLOR_PAIR(2));
-    mvwprintw(w,0,0,path);
-    wattroff(w,COLOR_PAIR(2));
-    wrefresh(w);
+void print_path(char* path) {
+    wmove(pathw,0,0);
+    wclrtoeol(pathw);
+    wattron(pathw,COLOR_PAIR(2));
+    mvwprintw(pathw,0,0,path);
+    wattroff(pathw,COLOR_PAIR(2));
+    wrefresh(pathw);
 }
 
 void render_contents(WINDOW* w,dir* directory) {
