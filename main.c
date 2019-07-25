@@ -28,7 +28,6 @@ void init(){
 }
 
 void display_dir(dir* directory) {
-    print_path(directory->path);
     werase(wbetweenw2w3);
     wrefresh(wbetweenw2w3);
     if (directory->parentdir) {
@@ -71,6 +70,7 @@ int main(int argc, char* argv[])
     init();
     initui();
     dir* directory = initdir();
+    print_path(directory->path);
     while (true) {
         getmaxyx(stdscr,yMax,xMax); 
         yMax -= 1;
@@ -103,12 +103,14 @@ int main(int argc, char* argv[])
 
             case 'h':
                 directory = up_dir(directory);
+                print_path(directory->path);
 
                 break;    
 
             case 'l':
                 if (directory->type[directory->cursor] == DT_DIR) {
                     directory = open_entry(directory);
+                    print_path(directory->path);
                 }
                 else {
                     endwin();
