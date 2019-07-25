@@ -23,13 +23,7 @@ void initui() {
 }
 
 void handle_resize() {
-    int yMax,xMax,i=0;
-    getmaxyx(stdscr,yMax,xMax); 
-    while (i < yMax) {
-        wmove(w3,i,0);
-        wclrtoeol(w3);
-        i++;
-    }
+
     clear();
     refresh();
     delwin(w1);
@@ -40,9 +34,6 @@ void handle_resize() {
     delwin(cmdw);
     delwin(wbetweenw2w3);
     initui();
-    wmove(cmdw,0,0);
-    wclrtoeol(cmdw);
-    wrefresh(cmdw);
 
 }
 
