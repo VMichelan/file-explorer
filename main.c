@@ -30,6 +30,7 @@ void init(){
 void display_dir(dir* directory) {
     werase(wbetweenw2w3);
     wrefresh(wbetweenw2w3);
+
     if (directory->parentdir) {
         render_contents(w1,directory->parentdir);
     }
@@ -37,29 +38,30 @@ void display_dir(dir* directory) {
         werase(w1);
         wrefresh(w1);
     }
-    if (directory->type[directory->cursor] == DT_DIR) {
-        if (directory->dirlist[directory->cursor] == NULL) {
-            if (chdir(directory->content[directory->cursor]) != -1) {
+
+    if (directory->type[directory->cursor] != DT_DIR) {
+        render_contents(w2w3, directory);
+    }
+    else {
+        if (directory->dirlist[directory->cursor] != NULL) {
+            render_contents(w2, directory);
+            render_contents(w3,directory->dirlist[directory->cursor]);
+        }
+        else {
+            if (chdir(directory->content[directory->cursor]) == -1) {
+                render_contents(w2w3, directory);
+            }
+            else {
                 dir* temp = read_directory();
                 temp->parentdir = directory;
-                render_contents(w3,temp);
                 insert_dir(directory,temp);
                 chdir(directory->path);
                 render_contents(w2, directory);
                 render_contents(w3, temp);
             }
-            else {
-                render_contents(w2w3, directory);
-            }
-        }
-        else {
-            render_contents(w2, directory);
-            render_contents(w3,directory->dirlist[directory->cursor]);
         }
     }
-    else {
-        render_contents(w2w3, directory);
-    }
+
 }
 
 int main(int argc, char* argv[])
