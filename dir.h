@@ -5,13 +5,14 @@
 #define TYPE_SIZE sizeof(unsigned char)
 #define PATH_SIZE sizeof(char)*4096
 
+#define ISDIR(directory, i) (i < directory->dircount)
+
 typedef struct dir dir;
 
 struct dir{
     char** content;
     int size;
     int cursor;
-    unsigned char* type;
     char* path;
     int index;
     dir* parentdir;
@@ -20,7 +21,6 @@ struct dir{
 };
 
 int free_dir(dir* dir_info);
-void sort_dir(dir* directory);
 dir* read_directory();
 int find_entry(dir* directory);
 dir* open_entry(dir* directory);

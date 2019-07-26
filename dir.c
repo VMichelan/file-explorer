@@ -54,12 +54,11 @@ int free_dir(dir* dir_info){
     for (i = 0; i < dir_info->size;i++) {
         free(dir_info->content[i]); 
     }
-    free(dir_info->type);
     free(dir_info->path);
     free(dir_info);
 }
 
-void sort_dir(dir* directory){
+void sort_dir(dir* directory, unsigned char* type){
     int i,j;
     char* temp;
     unsigned char temp2;
@@ -71,9 +70,9 @@ void sort_dir(dir* directory){
                 directory->content[i] = directory->content[j];
                 directory->content[j] = temp;
 
-                temp2 = directory->type[i];
-                directory->type[i] = directory->type[j];
-                directory->type[j] = temp2;
+                temp2 = type[i];
+                type[i] = type[j];
+                type[j] = temp2;
 
             }
         }
@@ -82,7 +81,7 @@ void sort_dir(dir* directory){
     unsigned char* auxtype = (unsigned char*) malloc(sizeof(char)*directory->size);
     j = 0;
     for (i = 0;i < directory->size;i++) {
-        if (directory->type[i] == DT_DIR) {
+        if (type[i] == DT_DIR) {
             aux[j] = directory->content[i];
             directory->content[i] = NULL;
             auxtype[j] = DT_DIR;
@@ -92,16 +91,17 @@ void sort_dir(dir* directory){
     for (i = 0;i < directory->size;i++) {
         if (directory->content[i] != NULL) {
             aux[j] = directory->content[i];
-            auxtype[j] = directory->type[i];
+            auxtype[j] = type[i];
             j++;
         }
     }
     for (i = 0;i < directory->size;i++) {
         directory->content[i] = aux[i];
-        directory->type[i] = auxtype[i];
+        type[i] = auxtype[i];
     }
     free(aux);
     free(auxtype);
+    free(type);
 }
 
 dir* read_directory() {
@@ -112,7 +112,7 @@ dir* read_directory() {
     int i = 0;
     dir* dir_info = (dir*) calloc_or_die(1,sizeof(dir));
     dir_info->content = (char**) calloc_or_die(1,sizeof(char*));
-    dir_info->type = (unsigned char*) calloc_or_die(1,sizeof(char));
+    unsigned char* type = (unsigned char*) malloc_or_die(sizeof(char));
     int dircount = 0;
     while (directory_entry = readdir(directory)) {
 
@@ -124,8 +124,8 @@ dir* read_directory() {
                 dircount++;
             }
 
-            dir_info->type = (unsigned char*) realloc_or_die(dir_info->type,sizeof(unsigned char)*i+1);
-            dir_info->type[i] = directory_entry->d_type;
+            type = (unsigned char*) realloc_or_die(type,sizeof(unsigned char)*i+1);
+            type[i] = directory_entry->d_type;
             i++;
         }
     }
@@ -139,7 +139,7 @@ dir* read_directory() {
     dir_info->cursor = 0;
     dir_info->index = 0;
     dir_info->parentdir = NULL;
-    sort_dir(dir_info);
+    sort_dir(dir_info, type);
     return dir_info;
 }
 

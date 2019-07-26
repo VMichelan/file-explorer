@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
-#include <dirent.h>
 #include <locale.h>
 
 #include "run.h"
@@ -81,7 +80,7 @@ void render_contents(WINDOW* w,dir* directory) {
         else {
             wattroff(w, A_STANDOUT);
         }
-        if (directory->type[i + directory->index] == DT_DIR) {
+        if (ISDIR(directory, i + directory->index)) {
             wattron(w, COLOR_PAIR(1));
         }
 
@@ -142,7 +141,7 @@ void display_dir(dir* directory) {
         wrefresh(w1);
     }
 
-    if (directory->type[directory->cursor] != DT_DIR) {
+    if (!ISDIR(directory, directory->cursor)) {
         render_contents(w2w3, directory);
     }
     else {
@@ -210,7 +209,7 @@ int main(int argc, char* argv[])
                 break;    
 
             case 'l':
-                if (directory->type[directory->cursor] == DT_DIR) {
+                if (ISDIR(directory, directory->cursor)) {
                     directory = open_entry(directory);
                     print_path(directory->path);
                 }
@@ -232,7 +231,7 @@ int main(int argc, char* argv[])
                 if (temp >= 0) {
                     directory->cursor = temp;
                     directory = open_entry(directory);
-                    if (directory->type[directory->cursor] == DT_DIR) {
+                    if (ISDIR(directory, directory->cursor)) {
                         directory->index = 0;
                     }
                 }
