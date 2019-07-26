@@ -276,10 +276,15 @@ void move_cursor(dir* directory,int yMax,int number) {
 
 dir* initdir() {
     dir* directory = read_directory();
-    chdir("..");
-    directory->parentdir = read_directory();
-    chdir(directory->path);
-    insert_dir(directory);
+    char* currentdir = malloc_or_die(sizeof(*currentdir)*PATH_SIZE);
+    getcwd(currentdir, PATH_SIZE);
+    if (strcmp(currentdir,"/")) {
+        chdir("..");
+        directory->parentdir = read_directory();
+        chdir(directory->path);
+        insert_dir(directory);
+    }
+    free(currentdir);
     return directory;
 }
 
