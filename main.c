@@ -166,6 +166,23 @@ void display_dir(dir* directory) {
 
 }
 
+void print_cmd(dir* directory, char* str) {
+    wmove(cmdw, 0, 0);
+
+    if (str) {
+        waddstr(cmdw, str);
+
+    }
+
+    wclrtoeol(cmdw);
+
+    char* position = malloc(sizeof(*str) * xMax);
+    int num_bytes = snprintf(position, xMax, "%d/%d", directory->cursor + 1, directory->size);
+    mvwaddstr(cmdw, 0, xMax - num_bytes, position);
+
+    wrefresh(cmdw);
+}
+
 int main(int argc, char* argv[])
 {   
     int ch;
@@ -177,6 +194,7 @@ int main(int argc, char* argv[])
     while (true) {
 
         display_dir(directory);
+        print_cmd(directory, NULL);
 
         ch = getch();
         if (ch == KEY_RESIZE) {
