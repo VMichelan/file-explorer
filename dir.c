@@ -143,26 +143,43 @@ dir* read_directory() {
     return dir_info;
 }
 
-void insert_dir(dir* directory,dir* ins) {
+char* current_directory(char* path) {
     int i,j = 0;
-    for (i = 0; i < strlen(ins->path);i++) {
-        if (ins->path[i] == '/') {
+
+    for (i = 0; i < strlen(path);i++) {
+        if (path[i] == '/') {
             j = i;
         }
     }
 
     j++;
+    return path + j;
+}
 
-    for (i = 0;i < directory->dircount;i++) {
-        if (!strcmp(ins->path+j,directory->content[i])) {
+void insert_dir(dir* dest,dir* ins) {
+    char* directoryname = current_directory(ins->path);
+    int i;
+
+    for (i = 0;i < dest->dircount;i++) {
+        if (!strcmp(directoryname, dest->content[i])) {
             break; 
         }
     }
 
-    if (i < directory->dircount) {
-        directory->dirlist[i] = ins;
+    if (i < dest->dircount) {
+        dest->dirlist[i] = ins;
     }
-    return;
+}
+
+void set_cursor(dir* directory) {
+    char* directoryname = current_directory(directory->path);
+
+    for (int i = 0; i < directory->parentdir->size; i++) {
+        if (!strcmp(directoryname, directory->parentdir->content[i])) {
+            directory->parentdir->cursor = i;
+            break;
+        }
+    }
 }
 
 int find_entry(dir* directory) {
@@ -225,6 +242,7 @@ dir* up_dir(dir* directory) {
             chdir(directory->parentdir->path);
             directory->parentdir->parentdir = temp;
             insert_dir(directory->parentdir,directory);
+            set_cursor(directory->parentdir);
             return directory->parentdir;
         }
     }
@@ -282,6 +300,7 @@ dir* initdir() {
     directory->parentdir = read_directory();
     insert_dir(directory->parentdir,directory);
     chdir(directory->path);
+    set_cursor(directory);
     return directory;
 }
 
