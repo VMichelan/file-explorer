@@ -47,6 +47,8 @@ void handle_resize() {
 
     initui();
 
+    print_path(directory->path);
+
 }
 
 void print_path(char* path) {
