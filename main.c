@@ -47,8 +47,6 @@ void handle_resize() {
 
     initui();
 
-    print_path(directory->path);
-
 }
 
 void print_path(char* path) {
@@ -183,6 +181,7 @@ int main(int argc, char* argv[])
         ch = getch();
         if (ch == KEY_RESIZE) {
             handle_resize();
+            print_path(directory->path);
             continue;
         }
         switch (ch) {
