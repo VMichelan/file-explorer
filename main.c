@@ -14,18 +14,21 @@
 #define W2FACTOR 2/5
 #define W3FACTOR 2/5
 
+#define WINYMAX(yMax) (yMax-1)
+#define WINYSIZE(yMax) (yMax-2)
+
 WINDOW *w1, *w2, *w3, *w2w3, *cmdw, *pathw, *wbetweenw2w3;
 
+int yMax,xMax;
+
 void initui() {
-    int yMax,xMax;
-    getmaxyx(stdscr,yMax,xMax);
-    w1 = newwin(yMax-2,xMax*W1FACTOR,1,0);
-    w2 = newwin(yMax-2,xMax*W2FACTOR,1,xMax*W1FACTOR+1);
-    w3 = newwin(yMax-2,xMax*W3FACTOR,1,(xMax*W1FACTOR+1)+(xMax*W2FACTOR)+1);
-    w2w3 = newwin(yMax-2, xMax*W2FACTOR + xMax*W3FACTOR, 1, xMax*W1FACTOR+1);
-    pathw = newwin(1,xMax,0,0);
-    cmdw = newwin(1,xMax,yMax-1,0);
-    wbetweenw2w3 = newwin(yMax-2, 1, 1, xMax*W1FACTOR + xMax*W2FACTOR + 1);
+    w1 =    newwin(WINYSIZE(yMax), xMax*W1FACTOR, 1, 0);
+    w2 =    newwin(WINYSIZE(yMax), xMax*W2FACTOR, 1, xMax*W1FACTOR+1);
+    w3 =    newwin(WINYSIZE(yMax), xMax*W3FACTOR, 1, (xMax*W1FACTOR+1)+(xMax*W2FACTOR)+1);
+    w2w3 =  newwin(WINYSIZE(yMax), xMax*W2FACTOR + xMax*W3FACTOR, 1, xMax*W1FACTOR+1);
+    pathw = newwin(1, xMax, 0, 0);
+    cmdw =  newwin(1, xMax, yMax-1, 0);
+    wbetweenw2w3 = newwin(WINYSIZE(yMax), 1, 1, xMax*W1FACTOR + xMax*W2FACTOR + 1);
 
 }
 
@@ -40,6 +43,9 @@ void handle_resize() {
     delwin(pathw);
     delwin(cmdw);
     delwin(wbetweenw2w3);
+
+    getmaxyx(stdscr,yMax,xMax);
+
     initui();
 
 }
@@ -120,6 +126,7 @@ void init(){
     curs_set(0);
     keypad(stdscr,TRUE);
     set_escdelay(50);
+    getmaxyx(stdscr,yMax,xMax);
     refresh();
 }
 
@@ -162,7 +169,6 @@ void display_dir(dir* directory) {
 
 int main(int argc, char* argv[])
 {   
-    int yMax,xMax;
     int ch;
     int temp = 0;
     init();
@@ -170,8 +176,6 @@ int main(int argc, char* argv[])
     dir* directory = initdir();
     print_path(directory->path);
     while (true) {
-        getmaxyx(stdscr,yMax,xMax); 
-        yMax -= 1;
 
         display_dir(directory);
 
@@ -182,21 +186,21 @@ int main(int argc, char* argv[])
         }
         switch (ch) {
             case 'j':
-                move_cursor(directory,yMax,1);
+                move_cursor(directory,WINYMAX(yMax),1);
                 break;
 
             case CTRL('D'):
             case KEY_NPAGE:
-                move_cursor(directory,yMax,(yMax/2));
+                move_cursor(directory,WINYMAX(yMax),(WINYMAX(yMax)/2));
                 break;
 
             case 'k':
-                move_cursor(directory,yMax,-1);
+                move_cursor(directory,WINYMAX(yMax),-1);
                 break;
 
             case CTRL('U'):
             case KEY_PPAGE:
-                move_cursor(directory,yMax,(-yMax/2));
+                move_cursor(directory,WINYMAX(yMax),(-WINYMAX(yMax)/2));
                 break;
 
             case 'h':
