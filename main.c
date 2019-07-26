@@ -54,7 +54,7 @@ void display_dir(dir* directory) {
             else {
                 dir* temp = read_directory();
                 temp->parentdir = directory;
-                insert_dir(directory,temp);
+                insert_dir(temp);
                 chdir(directory->path);
                 render_contents(w2, directory);
                 render_contents(w3, temp);

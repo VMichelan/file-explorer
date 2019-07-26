@@ -25,7 +25,7 @@ dir* read_directory();
 int find_entry(dir* directory);
 dir* open_entry(dir* directory);
 void move_cursor(dir* directory,int yMax,int number);
-void insert_dir(dir* directory,dir* ins);
+void insert_dir(dir* directory);
 dir* up_dir(dir* directory);
 dir* initdir();
 dir* reload_dir(dir* directory);
