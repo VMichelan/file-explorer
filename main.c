@@ -51,11 +51,10 @@ void handle_resize() {
 }
 
 void print_path(char* path) {
-    wmove(pathw,0,0);
-    wclrtoeol(pathw);
     wattron(pathw,COLOR_PAIR(2));
-    mvwprintw(pathw,0,0,path);
+    mvwaddstr(pathw,0,0,path);
     wattroff(pathw,COLOR_PAIR(2));
+    wclrtoeol(pathw);
     wrefresh(pathw);
 }
 
