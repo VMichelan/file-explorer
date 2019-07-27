@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <locale.h>
+#include <errno.h>
 
 #include "run.h"
 #include "dir.h"
@@ -171,12 +172,18 @@ void print_cmd(dir* directory, char* str) {
 
     if (str) {
         waddstr(cmdw, str);
-
+    }
+    else if (errno) {
+        int temp = errno;
+        wattron(cmdw, COLOR_PAIR(3));
+        waddstr(cmdw, strerror(temp));
+        wattroff(cmdw, COLOR_PAIR(3));
+        errno = 0;
     }
 
     wclrtoeol(cmdw);
 
-    char* position = malloc(sizeof(*str) * xMax);
+    char* position = malloc(sizeof(*position) * xMax);
     int num_bytes = snprintf(position, xMax, "%d/%d", directory->cursor + 1, directory->size);
     mvwaddstr(cmdw, 0, xMax - num_bytes, position);
 
