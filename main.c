@@ -100,7 +100,9 @@ void render_contents(WINDOW* w,dir* directory) {
         wattroff(w, COLOR_PAIR(1));
     }
     wclrtobot(w);
-    highlight_line(w, directory, CURSORLINE(directory), A_STANDOUT);
+    if (directory->size > 0) {
+        highlight_line(w, directory, CURSORLINE(directory), A_STANDOUT);
+    }
     wrefresh(w);
 
 }
