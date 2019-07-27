@@ -99,11 +99,7 @@ void render_contents(WINDOW* w,dir* directory) {
         i++;
         wattroff(w, COLOR_PAIR(1));
     }
-    while (i < yMax) {
-        wmove(w, i, 0);
-        wclrtoeol(w);
-        i++;
-    }
+    wclrtobot(w);
     highlight_line(w, directory, CURSORLINE(directory), A_STANDOUT);
     wrefresh(w);
 
