@@ -17,6 +17,9 @@
 #define WINYMAX(yMax) (yMax-1)
 #define WINYSIZE(yMax) (yMax-2)
 
+#define FILELINE(directory, i) (i - directory->index)
+#define CURSORLINE(directory) (FILELINE(directory, directory->cursor))
+
 WINDOW *w1, *w2, *w3, *w2w3, *cmdw, *pathw, *wbetweenw2w3;
 
 int yMax,xMax;
@@ -58,12 +61,22 @@ void print_path(char* path) {
     wrefresh(pathw);
 }
 
+void highlight_line(WINDOW* w, dir* directory, int line, attr_t attr) {
+    short color;
+    if (ISDIR(directory, line)) {
+        color = 1;
+    }
+    else {
+        color = 0;
+    }
+    mvwchgat(w, line, 0, -1, attr, color, NULL);
+}
+
 void render_contents(WINDOW* w,dir* directory) {
     if (!directory) {
         return;
     }
     int i = 0, yMax, xMax;
-    int cursory, cursorx;
     getmaxyx(w, yMax, xMax);
     if (directory->size == 0) {
         wmove(w, 0, 0);
@@ -74,12 +87,6 @@ void render_contents(WINDOW* w,dir* directory) {
         i++;
     }
     while (i + directory->index < directory->size && i < yMax) {
-        if (directory->cursor == i + directory->index) {
-            wattron(w, A_STANDOUT);
-        }
-        else {
-            wattroff(w, A_STANDOUT);
-        }
         if (ISDIR(directory, i + directory->index)) {
             wattron(w, COLOR_PAIR(1));
         }
@@ -87,17 +94,7 @@ void render_contents(WINDOW* w,dir* directory) {
         mvwaddch(w, i, 0, ' ');
         waddnstr(w, directory->content[i + directory->index], xMax-2);
 
-        getyx(w, cursory, cursorx);
-
-        if (directory->cursor == i + directory->index) {
-            while (cursorx < xMax) {
-                waddch(w, ' ');
-                cursorx++;
-            }
-        }
-        else {
-            wclrtoeol(w);
-        }
+        wclrtoeol(w);
 
         i++;
         wattroff(w, COLOR_PAIR(1));
@@ -107,7 +104,7 @@ void render_contents(WINDOW* w,dir* directory) {
         wclrtoeol(w);
         i++;
     }
-    wattroff(w, A_STANDOUT);
+    highlight_line(w, directory, CURSORLINE(directory), A_STANDOUT);
     wrefresh(w);
 
 }
