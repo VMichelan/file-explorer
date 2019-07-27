@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ncurses.h>
+#include <magic.h>
+#include <errno.h>
 
 #include "run.h"
 
@@ -17,23 +19,17 @@ char* extractcmd[] = {"atool", "-x"};
 // if NULL use $SHELL
 char* shell = NULL;
 
+magic_t cookie = NULL;
+const char* magicpath = "/usr/share/file/magic.mgc";
+
 char istextfile(char* filename) {
-    FILE* fp;
-    char output[1024];
-    char* cmd = calloc(1024, sizeof(*cmd));
-    if (!cmd) {
-        exit(EXIT_FAILURE);
-    }
-    sprintf(cmd, "file -ib \"%s\"", filename);
-    fp = popen(cmd, "r");
-    if (fp == NULL) {
-        return -1;
+    if (!cookie) {
+        cookie = magic_open(MAGIC_MIME);
+        magic_load(cookie, magicpath);
     }
 
-    fgets(output, sizeof(output)-1, fp);
-
-    free(cmd);
-    pclose(fp);
+    const char* output = magic_file(cookie, filename);
+    errno = 0; //magic_file sets errno for invalid argument, but works for some reason
 
     return !strstr(output, "charset=binary") || strstr(output, "inode/x-empty");
 }
