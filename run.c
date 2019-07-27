@@ -115,6 +115,9 @@ int open_terminal() {
     arguments[0] = terminal[0]; 
     arguments[1] = (char*) NULL;
     int returnvalue = run_(arguments,0);
+
+    free(arguments);
+
     return returnvalue;
 }
 
