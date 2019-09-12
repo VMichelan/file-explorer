@@ -113,7 +113,7 @@ void render_contents(WINDOW* w,dir* directory) {
 }
 
 void init(){
-    setlocale(LC_ALL, "en_US.utf8");
+    setlocale(LC_ALL, "");
     initscr();
     start_color();
     use_default_colors();
