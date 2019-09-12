@@ -132,10 +132,12 @@ dir* read_directory() {
 
     closedir(directory);
 
+    dir_info->marked = calloc_or_die(i, sizeof(*(dir_info->marked)));
     dir_info->dirlist = calloc_or_die((dircount+1),sizeof(dir*));
     dir_info->dircount = dircount;
     dir_info->path = directory_path;
     dir_info->size = i;
+    dir_info->markedcount = 0;
     dir_info->cursor = 0;
     dir_info->index = 0;
     dir_info->parentdir = NULL;

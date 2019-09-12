@@ -91,7 +91,12 @@ void render_contents(WINDOW* w,dir* directory) {
             wattron(w, COLOR_PAIR(1));
         }
 
-        mvwaddch(w, i, 0, ' ');
+        if (directory->marked[i]) {
+            mvwaddch(w, i, 0, '>');
+        }
+        else {
+            mvwaddch(w, i, 0, ' ');
+        }
         waddnstr(w, directory->content[i + directory->index], xMax-2);
 
         wclrtoeol(w);
@@ -287,6 +292,21 @@ int main(int argc, char* argv[])
             case 'S':
                 endwin();
                 run_shell();
+                break;
+
+            case ' ':
+                ungetch('j');
+            case 'm':
+                directory->markedcount -= directory->marked[directory->cursor];
+                directory->marked[directory->cursor] = !directory->marked[directory->cursor];
+                directory->markedcount += directory->marked[directory->cursor];
+                break;
+
+            case 'M':
+                for (int i = 0; i < directory->size; i++) {
+                    directory->marked[i] = 0;
+                }
+                directory->markedcount = 0;
                 break;
 
             case 'q':

@@ -12,6 +12,8 @@ typedef struct dir dir;
 struct dir{
     char** content;
     int size;
+    char* marked;
+    int markedcount;
     int cursor;
     char* path;
     int index;
