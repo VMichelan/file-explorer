@@ -165,41 +165,6 @@ void insert_dir(dir* directory) {
     }
 }
 
-int find_entry(dir* directory) {
-    int i,j,count = 0;
-    char ch;
-    int* list = (int*) malloc(sizeof(int)*directory->size);
-    for (i = 0; i < directory->size;i++) {
-        list[i] = 1;
-    }
-    i = 0;
-    while ((ch = getch()) != 27) {
-        if (ch == 10 || count == 1) {
-            for (int h = 0;h < directory->size;h++) {
-                if (list[h] == 1) {
-                    free(list);
-                    return h;
-                } 
-            }
-            return -1;
-        }
-        count = 0;
-        for (j = 0;j < directory->size;j++) {
-            if (list[j] == 1) {
-                if (tolower(directory->content[j][i]) != ch) {
-                    list[j] = 0;
-                }
-                else {
-                    count++;
-                }
-            }
-        }
-        i++;
-    }
-    free(list);
-    return -1;
-}
-
 dir* up_dir(dir* directory) {
     if (!strcmp(directory->path,"/")) {
         return directory;

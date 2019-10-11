@@ -1,3 +1,4 @@
+#define _GNU_SOURCE
 #include <ncurses.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -120,6 +121,7 @@ void init(){
     init_pair(1,COLOR_BLUE,-1);
     init_pair(2,COLOR_GREEN,-1);
     init_pair(3,-1,COLOR_RED);
+    init_pair(4, COLOR_YELLOW, COLOR_BLACK);
     raw();
     noecho();
     curs_set(0);
@@ -189,6 +191,76 @@ void print_cmd(dir* directory, char* str) {
     wrefresh(cmdw);
 }
 
+int find(dir* directory) {
+    int pos = 0, i, j;
+    int ch;
+    char *str = malloc(sizeof(*str) * 1024);
+    char *tmp = NULL;
+    str[0] = '\0';
+
+    mvwaddstr(cmdw, 0, 0, "Find:");
+    wrefresh(cmdw);
+    for (;;) {
+        ch = getch();
+        switch (ch) {
+            case KEY_BACKSPACE:
+                if (pos > 0) {
+                    str[--pos] = '\0';
+                }
+                break;
+            case 9:
+            case CTRL('N'):
+                for (i = 0; i < directory->size; i++) {
+                    j = (i + directory->cursor + 1) % directory->size;
+                    if (strcasestr(directory->content[j], str)) {
+                        move_cursor(directory, WINYMAX(yMax), j - directory->cursor);
+                        break;
+                    }
+                }
+                break;
+            case CTRL('P'):
+                for (i = 0; i < directory->size; i++) {
+                    j = (directory->cursor - i - 1);
+                    if (j < 0) {
+                        j += directory->size;
+                    }
+                    if (strcasestr(directory->content[j], str)) {
+                        move_cursor(directory, WINYMAX(yMax), j - directory->cursor);
+                        break;
+                    }
+                }
+                break;
+            case 10:
+                for (i = 0; i < directory->size; i++) {
+                    j = (i + directory->cursor) % directory->size;
+                    if (strcasestr(directory->content[j], str)) {
+                        directory->cursor = j;
+                        break;
+                    }
+                }
+                return 1;
+            case 27:
+                return 0;
+            default:
+                if (pos < 1024) {
+                    str[pos] = ch;
+                    str[++pos] = '\0';
+                }
+        }
+        mvwaddstr(cmdw, 0, 5, str);
+        wclrtoeol(cmdw);
+        render_contents(w2, directory);
+        for (j = directory->index; j < directory->size && j < directory->index + WINYSIZE(yMax); j++) {
+            tmp = strcasestr(directory->content[j], str);
+            if (tmp) {
+                mvwchgat(w2, FILELINE(directory, j), tmp - directory->content[j] + 1, pos, A_STANDOUT, 4, NULL);
+            }
+        }
+        wrefresh(w2);
+        wrefresh(cmdw);
+    }
+}
+
 int main(int argc, char* argv[])
 {   
     int ch;
@@ -249,30 +321,9 @@ int main(int argc, char* argv[])
                 break;
 
             case 'f':
-                mvwprintw(cmdw,0,0,"FIND MODE");
-                wrefresh(cmdw);
-                render_contents(w2,directory);
-                temp = find_entry(directory);
-                if (temp >= 0) {
-                    directory->cursor = temp;
-                    directory = open_entry(directory);
-                    if (ISDIR(directory, directory->cursor)) {
-                        directory->index = 0;
-                    }
+                if (find(directory)) {
+                    ungetch('l');
                 }
-
-                render_contents(w2,directory);
-                wmove(cmdw,0,0);
-                wclrtoeol(cmdw);
-                wrefresh(cmdw);
-                timeout(250);
-                ch = getch();
-                if (ch != 'h' && ch != 'l') {
-                    ungetch(ch);
-                }
-                timeout(-1);
-
-
                 break;
 
             case 't':
