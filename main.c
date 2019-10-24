@@ -5,6 +5,7 @@
 #include <string.h>
 #include <locale.h>
 #include <errno.h>
+#include <signal.h>
 
 #include "run.h"
 #include "dir.h"
@@ -269,6 +270,11 @@ int main(int argc, char* argv[])
     initui();
     dir* directory = initdir();
     print_path(directory->path);
+
+    sigset_t sigs;
+    sigemptyset(&sigs);
+    sigaddset(&sigs, SIGWINCH);
+
     while (true) {
 
         display_dir(directory);
@@ -311,8 +317,10 @@ int main(int argc, char* argv[])
                     print_path(directory->path);
                 }
                 else {
+                    sigprocmask(SIG_BLOCK, &sigs, 0);
                     endwin();
                     run(directory->content[directory->cursor],1);
+                    sigprocmask(SIG_UNBLOCK, &sigs, 0);
                 }
                 break;
 
