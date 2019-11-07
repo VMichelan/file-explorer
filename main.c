@@ -22,6 +22,58 @@
 #define FILELINE(directory, i) (i - directory->index)
 #define CURSORLINE(directory) (FILELINE(directory, directory->cursor))
 
+enum ACTION {
+    NONE,
+    UP,
+    S_UP,
+    DOWN,
+    S_DOWN,
+    RIGHT,
+    S_RIGHT,
+    LEFT,
+    S_LEFT,
+    SHELL,
+    TERMINAL,
+    BEGIN,
+    END,
+    FIND,
+    RELOAD,
+    EXTRACT,
+    MARK,
+    MARK_ADVANCE,
+    UNMARK,
+    QUIT
+};
+
+struct keybinding {
+    int key;
+    enum ACTION action;
+};
+
+static struct keybinding keybindings[] = {
+    {'k'        , UP            },
+    {CTRL('U')  , S_UP          },
+    {KEY_PPAGE  , S_UP          },
+    {'j'        , DOWN          },
+    {CTRL('D')  , S_DOWN        },
+    {KEY_NPAGE  , S_DOWN        },
+    {'l'        , RIGHT         },
+    {'L'        , S_RIGHT       },
+    {'h'        , LEFT          },
+    {'H'        , S_LEFT        },
+    {'S'        , SHELL         },
+    {'t'        , TERMINAL      },
+    {'g'        , BEGIN         },
+    {'G'        , END           },
+    {'f'        , FIND          },
+    {'r'        , RELOAD        },
+    {'X'        , EXTRACT       },
+    {'m'        , MARK          },
+    {' '        , MARK_ADVANCE  },
+    {'M'        , UNMARK        },
+    {'q'        , QUIT          }
+};
+
 WINDOW *w1, *w2, *w3, *w2w3, *cmdw, *pathw, *wbetweenw2w3;
 
 int yMax,xMax;
@@ -275,6 +327,8 @@ int main(int argc, char* argv[])
     sigemptyset(&sigs);
     sigaddset(&sigs, SIGWINCH);
 
+    enum ACTION action;
+
     while (true) {
 
         display_dir(directory);
@@ -286,32 +340,39 @@ int main(int argc, char* argv[])
             print_path(directory->path);
             continue;
         }
-        switch (ch) {
-            case 'j':
+
+        action = NONE;
+
+        for (int i = 0; i < sizeof(keybindings)/sizeof(*keybindings); i++) {
+            if (keybindings[i].key == ch) {
+                action = keybindings[i].action;
+                break;
+            }
+        }
+
+        switch (action) {
+            case DOWN:
                 move_cursor(directory,WINYMAX(yMax),1);
                 break;
 
-            case CTRL('D'):
-            case KEY_NPAGE:
+            case S_DOWN:
                 move_cursor(directory,WINYMAX(yMax),(WINYMAX(yMax)/2));
                 break;
 
-            case 'k':
+            case UP:
                 move_cursor(directory,WINYMAX(yMax),-1);
                 break;
 
-            case CTRL('U'):
-            case KEY_PPAGE:
+            case S_UP:
                 move_cursor(directory,WINYMAX(yMax),(-WINYMAX(yMax)/2));
                 break;
 
-            case 'h':
+            case LEFT:
                 directory = up_dir(directory);
                 print_path(directory->path);
-
                 break;    
 
-            case 'l':
+            case RIGHT:
                 if (ISDIR(directory, directory->cursor)) {
                     directory = open_entry(directory);
                     print_path(directory->path);
@@ -324,56 +385,60 @@ int main(int argc, char* argv[])
                 }
                 break;
 
-            case 'L':
+            case S_RIGHT:
                 run(directory->content[directory->cursor],0);
                 break;
 
-            case 'f':
+            case FIND:
                 if (find(directory)) {
                     ungetch('l');
                 }
                 break;
 
-            case 't':
+            case TERMINAL:
                 open_terminal();
                 break;
 
-            case 'r':
+            case RELOAD:
                 directory = reload_dir(directory);
                 break;
 
-            case 'X':
+            case EXTRACT:
                 endwin();
                 extract_file(directory->content[directory->cursor]);
                 directory = reload_dir(directory);
                 break;
 
-            case 'S':
+            case SHELL:
                 endwin();
                 run_shell();
                 break;
 
-            case ' ':
-                ungetch('j');
-            case 'm':
+            case MARK_ADVANCE:
+                for (int i = 0; i < sizeof(keybindings)/sizeof(*keybindings); i++) {
+                    if (keybindings[i].action == DOWN) {
+                        ungetch(keybindings[i].key);
+                        break;
+                    }
+                }
+            case MARK:
                 directory->markedcount -= directory->marked[directory->cursor];
                 directory->marked[directory->cursor] = !directory->marked[directory->cursor];
                 directory->markedcount += directory->marked[directory->cursor];
                 break;
 
-            case 'M':
+            case UNMARK:
                 for (int i = 0; i < directory->size; i++) {
                     directory->marked[i] = 0;
                 }
                 directory->markedcount = 0;
                 break;
 
-            case 'q':
+            case QUIT:
                 clear();
                 refresh(); 
                 endwin();
                 return 0;
-
         } 
 
     }
