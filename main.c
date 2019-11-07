@@ -117,7 +117,7 @@ void print_path(char* path) {
 
 void highlight_line(WINDOW* w, dir* directory, int line, attr_t attr) {
     short color;
-    if (ISDIR(directory, line)) {
+    if (ISDIR(directory, directory->index + line)) {
         color = 1;
     }
     else {
