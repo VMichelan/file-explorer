@@ -145,7 +145,7 @@ void render_contents(WINDOW* w,dir* directory) {
             wattron(w, COLOR_PAIR(1));
         }
 
-        if (directory->marked[i]) {
+        if (directory->marked[i + directory->index]) {
             mvwaddch(w, i, 0, '>');
         }
         else {
