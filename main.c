@@ -42,6 +42,8 @@ enum ACTION {
     MARK,
     MARK_ADVANCE,
     UNMARK,
+    YANK,
+    S_YANK,
     QUIT
 };
 
@@ -71,6 +73,8 @@ static struct keybinding keybindings[] = {
     {'m'        , MARK          },
     {' '        , MARK_ADVANCE  },
     {'M'        , UNMARK        },
+    {'y'        , YANK          },
+    {'Y'        , S_YANK        },
     {'q'        , QUIT          }
 };
 
@@ -432,6 +436,24 @@ int main(int argc, char* argv[])
                     directory->marked[i] = 0;
                 }
                 directory->markedcount = 0;
+                break;
+
+            case YANK:
+                copy_to_clipboard(&directory->content[directory->cursor], 1);
+                break;
+
+            case S_YANK:
+                {
+                    char *filenames[directory->markedcount];
+                    int j = 0;
+                    for (int i = 0; i < directory->size && j < directory->markedcount; i++) {
+                        if (directory->marked[i]) {
+                            filenames[j] = directory->content[i];
+                            j++;
+                        }
+                    }
+                    copy_to_clipboard(filenames, directory->markedcount);
+                }
                 break;
 
             case QUIT:

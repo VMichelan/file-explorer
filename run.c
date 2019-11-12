@@ -147,3 +147,27 @@ void run_shell() {
     
     free(arguments);
 }
+
+void copy_to_clipboard(char** filenames, int count) {
+    int pipefd[2];
+    pipe(pipefd);
+
+    int pid = fork();
+
+    if (pid == 0) {
+        close(pipefd[1]);
+        dup2(pipefd[0], STDIN_FILENO);
+        execl("/usr/bin/xclip", "xclip", "-sel", "clip", (char *) NULL);
+        exit(EXIT_FAILURE);
+    }
+
+    close(pipefd[0]);
+    int i;
+    for (i = 0; i < count - 1; i++) {
+        write(pipefd[1], filenames[i], strlen(filenames[i]));
+        write(pipefd[1], " ", 1);
+    }
+    write(pipefd[1], filenames[i], strlen(filenames[i]));
+    close(pipefd[1]);
+    return;
+}
