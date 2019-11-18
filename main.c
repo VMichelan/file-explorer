@@ -12,9 +12,9 @@
 
 #define CTRL(x) (x - 64)
 
-#define W1FACTOR 1/5
-#define W2FACTOR 2/5
-#define W3FACTOR 2/5
+#define W1RATIO 1/8
+#define W2RATIO 3/8
+#define W3RATIO 4/8
 
 #define WINYMAX(yMax) (yMax-1)
 #define WINYSIZE(yMax) (yMax-2)
@@ -83,13 +83,13 @@ WINDOW *w1, *w2, *w3, *w2w3, *cmdw, *pathw, *wbetweenw2w3;
 int yMax,xMax;
 
 void initui() {
-    w1 =    newwin(WINYSIZE(yMax), xMax*W1FACTOR, 1, 0);
-    w2 =    newwin(WINYSIZE(yMax), xMax*W2FACTOR, 1, xMax*W1FACTOR+1);
-    w3 =    newwin(WINYSIZE(yMax), xMax*W3FACTOR, 1, (xMax*W1FACTOR+1)+(xMax*W2FACTOR)+1);
-    w2w3 =  newwin(WINYSIZE(yMax), xMax*W2FACTOR + xMax*W3FACTOR, 1, xMax*W1FACTOR+1);
+    w1 =    newwin(WINYSIZE(yMax), xMax*W1RATIO, 1, 0);
+    w2 =    newwin(WINYSIZE(yMax), xMax*W2RATIO, 1, xMax*W1RATIO+1);
+    w3 =    newwin(WINYSIZE(yMax), xMax*W3RATIO, 1, (xMax*W1RATIO+1)+(xMax*W2RATIO)+1);
+    w2w3 =  newwin(WINYSIZE(yMax), xMax*W2RATIO + xMax*W3RATIO, 1, xMax*W1RATIO+1);
     pathw = newwin(1, xMax, 0, 0);
     cmdw =  newwin(1, xMax, yMax-1, 0);
-    wbetweenw2w3 = newwin(WINYSIZE(yMax), 1, 1, xMax*W1FACTOR + xMax*W2FACTOR + 1);
+    wbetweenw2w3 = newwin(WINYSIZE(yMax), 1, 1, xMax*W1RATIO + xMax*W2RATIO + 1);
 
 }
 
