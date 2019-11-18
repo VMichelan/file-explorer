@@ -22,7 +22,7 @@ struct dir{
     int dircount;
 };
 
-int free_dir(dir* dir_info);
+void free_dir(dir* dir_info);
 dir* read_directory();
 dir* open_entry(dir* directory);
 void move_cursor(dir* directory,int yMax,int number);

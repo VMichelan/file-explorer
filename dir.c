@@ -46,15 +46,21 @@ void* calloc_or_die(int size,int size2) {
 }
 
 
-int free_dir(dir* dir_info){
+void free_dir(dir *dir_info){
     int i;
     if (dir_info == NULL) {
-        return 0;
+        return;
     }
-    for (i = 0; i < dir_info->size;i++) {
+    for (i = 0; i < dir_info->size; i++) {
         free(dir_info->content[i]); 
     }
+    free(dir_info->content);
+    for(i = 0; i < dir_info->dircount; i++) {
+        free_dir(dir_info->dirlist[i]);
+    }
+    free(dir_info->dirlist);
     free(dir_info->path);
+    free(dir_info->marked);
     free(dir_info);
 }
 
@@ -274,10 +280,6 @@ dir* reload_dir(dir* directory) {
         }
     }
 
-    // frees any dir that doesn't exist anymore
-    for (int i = 0; i < directory->dircount; i++)
-        free_dir(directory->dirlist[i]);
-
     if (directory->parentdir) {
         for (int i = 0; i < directory->parentdir->dircount; i++) {
             if (directory->parentdir->dirlist[i] == directory) {
@@ -286,7 +288,6 @@ dir* reload_dir(dir* directory) {
             }
         }
     }
-
 
     newdirectory->parentdir = directory->parentdir;
     newdirectory->cursor = directory->cursor;
