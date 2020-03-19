@@ -6,6 +6,7 @@ int open_terminal();
 void extract_file(char* filename);
 void run_shell();
 void copy_to_clipboard(char** filenames, int count);
+void run_preview(char* file, char* preview, int previewsize);
 
 #endif
 

@@ -44,6 +44,7 @@ enum ACTION {
     UNMARK,
     YANK,
     S_YANK,
+    PREVIEW,
     QUIT
 };
 
@@ -75,6 +76,7 @@ static struct keybinding keybindings[] = {
     {'M'        , UNMARK        },
     {'y'        , YANK          },
     {'Y'        , S_YANK        },
+    {'p'        , PREVIEW       },
     {'q'        , QUIT          }
 };
 
@@ -188,7 +190,7 @@ void init(){
     refresh();
 }
 
-void display_dir(dir* directory) {
+void display_dir(dir* directory, char* preview) {
     werase(wbetweenw2w3);
     wrefresh(wbetweenw2w3);
 
@@ -201,7 +203,15 @@ void display_dir(dir* directory) {
     }
 
     if (!ISDIR(directory, directory->cursor)) {
-        render_contents(w2w3, directory);
+        if (preview[0] != '\0') {
+            mvwaddstr(w3, 0, 0, preview);
+            wclrtobot(w3);
+            wrefresh(w3);
+            preview[0] = '\0';
+        }
+        else {
+            render_contents(w2w3, directory);
+        }
     }
     else {
         if (directory->contents[directory->cursor]->dir_ptr != NULL) {
@@ -333,9 +343,12 @@ int main(int argc, char* argv[])
 
     enum ACTION action;
 
+    char* preview = malloc(6667);
+    preview[0] = '\0';
+
     while (true) {
 
-        display_dir(directory);
+        display_dir(directory, preview);
         print_cmd(directory, NULL);
 
         ch = getch();
@@ -454,6 +467,10 @@ int main(int argc, char* argv[])
                     }
                     copy_to_clipboard(filenames, directory->markedcount);
                 }
+                break;
+
+            case PREVIEW:
+                run_preview(directory->contents[directory->cursor]->name, preview, WINYSIZE(yMax) * W3RATIO * xMax);
                 break;
 
             case QUIT:

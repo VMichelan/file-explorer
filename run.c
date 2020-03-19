@@ -171,3 +171,18 @@ void copy_to_clipboard(char** filenames, int count) {
     close(pipefd[1]);
     return;
 }
+
+void run_preview(char* file, char* preview, int previewsize) {
+    FILE* f = fopen(file, "r");
+    int read = fread(preview, 1, previewsize, f);
+    if (read == previewsize) {
+        read--;
+    }
+    preview[read++] = '\0';
+    fclose(f);
+    /*int i;
+    for (i = 0; i < strlen(file); i++) {
+        preview[i] = file[i];
+    }
+    preview[i] = '\0';*/
+}
