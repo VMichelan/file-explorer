@@ -149,13 +149,13 @@ void render_contents(WINDOW* w,dir* directory) {
             wattron(w, COLOR_PAIR(1));
         }
 
-        if (directory->marked[i + directory->index]) {
+        if (directory->contents[i + directory->index]->marked) {
             mvwaddch(w, i, 0, '>');
         }
         else {
             mvwaddch(w, i, 0, ' ');
         }
-        waddnstr(w, directory->content[i + directory->index], xMax-2);
+        waddnstr(w, directory->contents[i + directory->index]->name, xMax-2);
 
         wclrtoeol(w);
 
@@ -204,12 +204,12 @@ void display_dir(dir* directory) {
         render_contents(w2w3, directory);
     }
     else {
-        if (directory->dirlist[directory->cursor] != NULL) {
+        if (directory->contents[directory->cursor]->dir_ptr != NULL) {
             render_contents(w2, directory);
-            render_contents(w3,directory->dirlist[directory->cursor]);
+            render_contents(w3,directory->contents[directory->cursor]->dir_ptr);
         }
         else {
-            if (chdir(directory->content[directory->cursor]) == -1) {
+            if (chdir(directory->contents[directory->cursor]->name) == -1) {
                 render_contents(w2w3, directory);
             }
             else {
@@ -269,7 +269,7 @@ int find(dir* directory) {
             case CTRL('N'):
                 for (i = 0; i < directory->size; i++) {
                     j = (i + directory->cursor + 1) % directory->size;
-                    if (strcasestr(directory->content[j], str)) {
+                    if (strcasestr(directory->contents[j]->name, str)) {
                         move_cursor(directory, WINYMAX(yMax), j - directory->cursor);
                         break;
                     }
@@ -281,7 +281,7 @@ int find(dir* directory) {
                     if (j < 0) {
                         j += directory->size;
                     }
-                    if (strcasestr(directory->content[j], str)) {
+                    if (strcasestr(directory->contents[j]->name, str)) {
                         move_cursor(directory, WINYMAX(yMax), j - directory->cursor);
                         break;
                     }
@@ -290,7 +290,7 @@ int find(dir* directory) {
             case 10:
                 for (i = 0; i < directory->size; i++) {
                     j = (i + directory->cursor) % directory->size;
-                    if (strcasestr(directory->content[j], str)) {
+                    if (strcasestr(directory->contents[j]->name, str)) {
                         directory->cursor = j;
                         break;
                     }
@@ -308,9 +308,9 @@ int find(dir* directory) {
         wclrtoeol(cmdw);
         render_contents(w2, directory);
         for (j = directory->index; j < directory->size && j < directory->index + WINYSIZE(yMax); j++) {
-            tmp = strcasestr(directory->content[j], str);
+            tmp = strcasestr(directory->contents[j]->name, str);
             if (tmp) {
-                mvwchgat(w2, FILELINE(directory, j), tmp - directory->content[j] + 1, pos, A_STANDOUT, 4, NULL);
+                mvwchgat(w2, FILELINE(directory, j), tmp - directory->contents[j]->name + 1, pos, A_STANDOUT, 4, NULL);
             }
         }
         wrefresh(w2);
@@ -384,13 +384,13 @@ int main(int argc, char* argv[])
                 else {
                     sigprocmask(SIG_BLOCK, &sigs, 0);
                     endwin();
-                    run(directory->content[directory->cursor],1);
+                    run(directory->contents[directory->cursor]->name,1);
                     sigprocmask(SIG_UNBLOCK, &sigs, 0);
                 }
                 break;
 
             case S_RIGHT:
-                run(directory->content[directory->cursor],0);
+                run(directory->contents[directory->cursor]->name,0);
                 break;
 
             case FIND:
@@ -409,7 +409,7 @@ int main(int argc, char* argv[])
 
             case EXTRACT:
                 endwin();
-                extract_file(directory->content[directory->cursor]);
+                extract_file(directory->contents[directory->cursor]->name);
                 directory = reload_dir(directory);
                 break;
 
@@ -426,20 +426,20 @@ int main(int argc, char* argv[])
                     }
                 }
             case MARK:
-                directory->markedcount -= directory->marked[directory->cursor];
-                directory->marked[directory->cursor] = !directory->marked[directory->cursor];
-                directory->markedcount += directory->marked[directory->cursor];
+                directory->markedcount -= directory->contents[directory->cursor]->marked;
+                directory->contents[directory->cursor]->marked = !directory->contents[directory->cursor]->marked;
+                directory->markedcount += directory->contents[directory->cursor]->marked;
                 break;
 
             case UNMARK:
                 for (int i = 0; i < directory->size; i++) {
-                    directory->marked[i] = 0;
+                    directory->contents[i]->marked = 0;
                 }
                 directory->markedcount = 0;
                 break;
 
             case YANK:
-                copy_to_clipboard(&directory->content[directory->cursor], 1);
+                copy_to_clipboard(&directory->contents[directory->cursor]->name, 1);
                 break;
 
             case S_YANK:
@@ -447,8 +447,8 @@ int main(int argc, char* argv[])
                     char *filenames[directory->markedcount];
                     int j = 0;
                     for (int i = 0; i < directory->size && j < directory->markedcount; i++) {
-                        if (directory->marked[i]) {
-                            filenames[j] = directory->content[i];
+                        if (directory->contents[i]->marked) {
+                            filenames[j] = directory->contents[i]->name;
                             j++;
                         }
                     }

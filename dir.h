@@ -7,18 +7,37 @@
 
 #define ISDIR(directory, i) (i < directory->dircount)
 
+enum ENTRY_TYPE {
+    ENTRY_TYPE_UNKNOWN,
+    ENTRY_TYPE_FILE,
+    ENTRY_TYPE_BINARY,
+    ENTRY_TYPE_TEXT,
+    ENTRY_TYPE_IMAGE,
+    ENTRY_TYPE_PDF,
+    ENTRY_TYPE_ARCHIVE,
+    ENTRY_TYPE_DIRECTORY,
+    ENTRY_TYPE_LINK,
+};
+
+typedef struct entry entry;
+
 typedef struct dir dir;
 
+struct entry {
+    char* name;
+    char marked;
+    enum ENTRY_TYPE type;
+    dir* dir_ptr;
+};
+
 struct dir{
-    char** content;
+    entry** contents;
+    char* path;
+    dir* parentdir;
     int size;
-    char* marked;
     int markedcount;
     int cursor;
-    char* path;
     int index;
-    dir* parentdir;
-    dir** dirlist;
     int dircount;
 };
 
