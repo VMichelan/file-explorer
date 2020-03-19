@@ -20,12 +20,11 @@ char* extractcmd[] = {"atool", "-x"};
 char* shell = NULL;
 
 magic_t cookie = NULL;
-const char* magicpath = "/usr/share/file/magic.mgc";
 
 char istextfile(char* filename) {
     if (!cookie) {
         cookie = magic_open(MAGIC_MIME);
-        magic_load(cookie, magicpath);
+        magic_load(cookie, NULL);
     }
 
     const char* output = magic_file(cookie, filename);
