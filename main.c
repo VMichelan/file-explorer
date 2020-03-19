@@ -96,9 +96,9 @@ void initui() {
 }
 
 void handle_resize() {
-
-    clear();
+    endwin();
     refresh();
+    clear();
     delwin(w1);
     delwin(w2);
     delwin(w3);
@@ -106,11 +106,8 @@ void handle_resize() {
     delwin(pathw);
     delwin(cmdw);
     delwin(wbetweenw2w3);
-
     getmaxyx(stdscr,yMax,xMax);
-
     initui();
-
 }
 
 void print_path(char* path) {
@@ -330,12 +327,16 @@ int find(dir* directory) {
 
 int main(int argc, char* argv[])
 {   
+    struct sigaction sa;
+    memset(&sa, 0, sizeof(struct sigaction));
+    sa.sa_handler = handle_resize;
+    sigaction(SIGWINCH, &sa, NULL);
+
     int ch;
     int temp = 0;
     init();
     initui();
     dir* directory = initdir();
-    print_path(directory->path);
 
     sigset_t sigs;
     sigemptyset(&sigs);
@@ -350,13 +351,9 @@ int main(int argc, char* argv[])
 
         display_dir(directory, preview);
         print_cmd(directory, NULL);
+        print_path(directory->path);
 
         ch = getch();
-        if (ch == KEY_RESIZE) {
-            handle_resize();
-            print_path(directory->path);
-            continue;
-        }
 
         action = NONE;
 
