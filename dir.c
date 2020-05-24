@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <ncurses.h>
 #include <sys/wait.h>
+#include <sys/stat.h>
 #include <ctype.h>
 
 #include "dir.h"
@@ -61,6 +62,27 @@ void free_dir(dir *dir_info){
     free(dir_info);
 }
 
+char* dir_parentpath(dir* directory) {
+    if (directory->parentdir)
+        return directory->parentdir->path;
+    else if (IS_PATH_ROOT(directory->path))
+        return NULL;
+
+    char* path = strdup(directory->path);
+    char* path_end;
+    path_end = strrchr(path, '/');
+    *path_end = '\0';
+    path_end = strrchr(path, '/');
+    path_end++;
+
+    *path_end = '\0';
+    char* parentpath = strdup(path);
+
+    free(path);
+
+    return parentpath;
+}
+
 int entry_cmp(const void * entry1, const void * entry2) {
     return strcasecmp((*(entry **) entry1)->name, (*(entry **) entry2)->name);
 }
@@ -94,17 +116,27 @@ void sort_dir(dir* directory){
     free(file_entries);
 }
 
-dir* read_directory() {
+dir* read_directory(const char* directorypath) {
+    if (!directorypath)
+        return NULL;
+
     int i = 0;
     int dircount = 0;
 
     dir* dir_info = calloc_or_die(1, sizeof(dir));
     dir_info->contents = calloc_or_die(1, sizeof(entry*));
 
-    char* directory_path = (char*) malloc_or_die(PATH_SIZE);
-    getcwd(directory_path, PATH_SIZE);
-    DIR* directory = opendir(directory_path);
+    DIR* directory = opendir(directorypath);
+
+    if (!directory)
+        return NULL;
+
     struct dirent *directory_entry;
+    struct stat sb;
+
+    char* cwd = malloc_or_die(sizeof(*cwd) * PATH_MAX);
+    getcwd(cwd, PATH_MAX);
+    chdir(directorypath);
 
     while (directory_entry = readdir(directory)) {
         if (directory_entry->d_name[0] != '.' && strcmp(directory_entry->d_name, "..")) {
@@ -113,6 +145,7 @@ dir* read_directory() {
             dir_info->contents[i]->name = malloc_or_die(FILENAME_SIZE);
             strcpy(dir_info->contents[i]->name, directory_entry->d_name);
             dir_info->contents[i]->marked = 0;
+            dir_info->contents[i]->islink = 0;
             switch (directory_entry->d_type) {
                 case DT_REG:
                     dir_info->contents[i]->type = ENTRY_TYPE_FILE;
@@ -122,7 +155,20 @@ dir* read_directory() {
                     dircount++;
                     break;
                 case DT_LNK:
-                    dir_info->contents[i]->type = ENTRY_TYPE_LINK;
+                    dir_info->contents[i]->islink = 1;
+                case DT_UNKNOWN:
+                    if (stat(directory_entry->d_name, &sb) == 0) {
+                        if (S_ISDIR(sb.st_mode)) {
+                            dir_info->contents[i]->type = ENTRY_TYPE_DIRECTORY;
+                            dircount++;
+                        }
+                        else {
+                            dir_info->contents[i]->type = ENTRY_TYPE_FILE;
+                        }
+                    }
+                    else {
+                        dir_info->contents[i]->type = ENTRY_TYPE_UNKNOWN;
+                    }
                     break;
                 default:
                     dir_info->contents[i]->type = ENTRY_TYPE_UNKNOWN;
@@ -136,8 +182,11 @@ dir* read_directory() {
 
     closedir(directory);
 
+    chdir(cwd);
+    free(cwd);
+
     dir_info->dircount = dircount;
-    dir_info->path = directory_path;
+    dir_info->path = strdup(directorypath);
     dir_info->size = i;
     dir_info->markedcount = 0;
     dir_info->cursor = 0;
@@ -149,70 +198,76 @@ dir* read_directory() {
 }
 
 void insert_dir(dir* directory) {
-    int i, j = 0;
-
-    for (i = 0; i < strlen(directory->path); i++) {
-        if (directory->path[i] == '/') {
-            j = i;
-        }
-    }
-
-    j++;
+    char* dirpath = strdup(directory->path);
+    char* dirname;
+    char* next = strtok(dirpath, "/");
+    do {
+        dirname = next;
+        next = strtok(NULL, "/");
+    } while (next);
 
     for (int i = 0; i < directory->parentdir->size; i++) {
-        if (!strcmp(directory->path + j, directory->parentdir->contents[i]->name)) {
+        if (strcmp(dirname, directory->parentdir->contents[i]->name) == 0) {
             directory->parentdir->contents[i]->dir_ptr = directory;
             directory->parentdir->cursor = i;
             break;
         }
     }
+
+    free(dirpath);
 }
 
 dir* up_dir(dir* directory) {
-    if (!strcmp(directory->path, "/")) {
+    if (IS_PATH_ROOT(directory->path)) {
         return directory;
     }
+
     if (directory->parentdir) {
-        if (directory->parentdir->parentdir) {
-            chdir("..");
-            return directory->parentdir;
-        }
-        else {
-            chdir("..");
-            char* currentdir = malloc_or_die(sizeof(*currentdir) * PATH_SIZE);
-            getcwd(currentdir, PATH_SIZE);
-            if (!strcmp(currentdir, "/")) {
-                free(currentdir);
-                return directory->parentdir;
+        if (!directory->parentdir->parentdir) {
+            if (!IS_PATH_ROOT(directory->parentdir->path)) {
+                char* parentpath = dir_parentpath(directory->parentdir);
+                if (!parentpath) {
+                    return directory->parentdir;
+                }
+
+                directory->parentdir->parentdir = read_directory(parentpath);
+                free(parentpath);
+                insert_dir(directory->parentdir);
             }
-            free(currentdir);
-            chdir("..");
-            dir* temp;
-            temp = read_directory();
-            chdir(directory->parentdir->path);
-            directory->parentdir->parentdir = temp;
-            insert_dir(directory->parentdir);
-            return directory->parentdir;
         }
+        chdir(directory->parentdir->path);
+        return directory->parentdir;
     }
-    return directory->parentdir;
+
+    return directory;
 }
 
 dir* open_entry(dir* directory) {
     if (directory->contents[directory->cursor]->dir_ptr == NULL) {
-        if (chdir(directory->contents[directory->cursor]->name) != -1) {
-            dir* temp = read_directory();
-            temp->parentdir = directory;
-            directory->contents[directory->cursor]->dir_ptr = temp;
-        }
-        else {
+        char* foldername = directory->contents[directory->cursor]->name;
+        char* path = malloc(sizeof(*path) * strlen(directory->path) + strlen(foldername) + 2);
+
+        strncpy(path, directory->path, strlen(directory->path) + 1);
+        strncat(path, foldername, strlen(foldername));
+
+        int pathlen = strlen(path);
+        path[pathlen] = '/';
+        path[pathlen + 1] = '\0';
+
+        dir* temp = read_directory(path);
+
+        free(path);
+
+        if (!temp || chdir(foldername) == -1) {
+            free_dir(temp);
             return directory;
         }
-    }
-    else { 
-        chdir(directory->contents[directory->cursor]->dir_ptr->path);
+
+        temp->parentdir = directory;
+        directory->contents[directory->cursor]->dir_ptr = temp;
     }
 
+    chdir(directory->contents[directory->cursor]->dir_ptr->path);
     return directory->contents[directory->cursor]->dir_ptr;
 }
 
@@ -240,25 +295,34 @@ void move_cursor(dir* directory,int yMax,int number) {
             }
         }
     }
-
 }
 
 dir* initdir() {
-    dir* directory = read_directory();
-    char* currentdir = malloc_or_die(sizeof(*currentdir)*PATH_SIZE);
-    getcwd(currentdir, PATH_SIZE);
-    if (strcmp(currentdir,"/")) {
-        chdir("..");
-        directory->parentdir = read_directory();
-        chdir(directory->path);
+    char* pwd = getenv("PWD");
+    int pwdlen = strlen(pwd);
+    char* path = malloc_or_die(sizeof(*path) * pwdlen + 2);
+    strncpy(path, pwd, pwdlen);
+
+    if (!IS_PATH_ROOT(path)) {
+        path[pwdlen] = '/';
+        path[pwdlen + 1] = '\0';
+    }
+
+    dir* directory = read_directory(path);
+    free(path);
+
+    if (!IS_PATH_ROOT(path)) {
+        char* parentpath = dir_parentpath(directory); 
+        directory->parentdir = read_directory(parentpath);
+        free(parentpath);
         insert_dir(directory);
     }
-    free(currentdir);
+
     return directory;
 }
 
 dir* reload_dir(dir* directory) {
-    dir* newdirectory = read_directory();
+    dir* newdirectory = read_directory(directory->path);
 
     for (int i = 0; i < directory->dircount; i++) {
         if (directory->contents[i]->dir_ptr) {

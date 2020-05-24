@@ -120,7 +120,10 @@ void print_path(char* path) {
 
 void highlight_line(WINDOW* w, dir* directory, int line, attr_t attr) {
     short color;
-    if (ISDIR(directory, directory->index + line)) {
+    if (directory->contents[directory->index + line]->islink) {
+        color = 2;
+    }
+    else if (ISDIR(directory, line + directory->index)) {
         color = 1;
     }
     else {
@@ -144,7 +147,10 @@ void render_contents(WINDOW* w,dir* directory) {
         i++;
     }
     while (i + directory->index < directory->size && i < yMax) {
-        if (ISDIR(directory, i + directory->index)) {
+        if (directory->contents[directory->index + i]->islink) {
+            wattron(w, COLOR_PAIR(2));
+        }
+        else if (ISDIR(directory, i + directory->index)) {
             wattron(w, COLOR_PAIR(1));
         }
 
@@ -159,6 +165,7 @@ void render_contents(WINDOW* w,dir* directory) {
         wclrtoeol(w);
 
         i++;
+        wattroff(w, COLOR_PAIR(2));
         wattroff(w, COLOR_PAIR(1));
     }
     wclrtobot(w);
@@ -216,16 +223,13 @@ void display_dir(dir* directory, char* preview) {
             render_contents(w3,directory->contents[directory->cursor]->dir_ptr);
         }
         else {
-            if (chdir(directory->contents[directory->cursor]->name) == -1) {
+            if (open_entry(directory) == directory) {
                 render_contents(w2w3, directory);
             }
             else {
-                dir* temp = read_directory();
-                temp->parentdir = directory;
-                insert_dir(temp);
                 chdir(directory->path);
                 render_contents(w2, directory);
-                render_contents(w3, temp);
+                render_contents(w3, directory->contents[directory->cursor]->dir_ptr);
             }
         }
     }

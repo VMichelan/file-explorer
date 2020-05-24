@@ -6,6 +6,7 @@
 #define PATH_SIZE sizeof(char)*4096
 
 #define ISDIR(directory, i) (i < directory->dircount)
+#define IS_PATH_ROOT(path) (path && path[0] == '/' && path[1] == '\0')
 
 enum ENTRY_TYPE {
     ENTRY_TYPE_UNKNOWN,
@@ -26,6 +27,7 @@ typedef struct dir dir;
 struct entry {
     char* name;
     char marked;
+    char islink;
     enum ENTRY_TYPE type;
     dir* dir_ptr;
 };
