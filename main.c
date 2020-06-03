@@ -31,7 +31,6 @@ enum ACTION {
     RIGHT,
     S_RIGHT,
     LEFT,
-    S_LEFT,
     SHELL,
     TERMINAL,
     BEGIN,
@@ -63,7 +62,6 @@ static struct keybinding keybindings[] = {
     {'l'        , RIGHT         },
     {'L'        , S_RIGHT       },
     {'h'        , LEFT          },
-    {'H'        , S_LEFT        },
     {'S'        , SHELL         },
     {'t'        , TERMINAL      },
     {'g'        , BEGIN         },
@@ -472,6 +470,17 @@ int main(int argc, char* argv[])
 
             case PREVIEW:
                 run_preview(directory->contents[directory->cursor]->name, preview, WINYSIZE(yMax) * W3RATIO * xMax);
+                break;
+
+            case BEGIN:
+                move_cursor(directory, WINYMAX(yMax), -directory->cursor);
+                break;
+
+            case END:
+                move_cursor(directory, WINYMAX(yMax), directory->size);
+                break;
+
+            case NONE:
                 break;
 
             case QUIT:
