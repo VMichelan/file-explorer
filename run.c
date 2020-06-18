@@ -11,7 +11,7 @@
 
 #define LEN(x) sizeof(x)/sizeof(*x)
 
-char* terminal[] = {"urxvt", "-e"};
+char* terminal[] = {"st", "-e"};
 char* fileopener[] = {"rifle"};
 char* terminaleditor[] = {"vim"};
 char* extractcmd[] = {"atool", "-x"};
@@ -172,16 +172,14 @@ void copy_to_clipboard(char** filenames, int count) {
 }
 
 void run_preview(char* file, char* preview, int previewsize) {
+    if (!istextfile(file)) {
+        return;
+    }
     FILE* f = fopen(file, "r");
-    int read = fread(preview, 1, previewsize, f);
-    if (read == previewsize) {
-        read--;
+    int bytesread = fread(preview, 1, previewsize, f);
+    if (bytesread == previewsize) {
+        bytesread--;
     }
-    preview[read++] = '\0';
+    preview[bytesread] = '\0';
     fclose(f);
-    /*int i;
-    for (i = 0; i < strlen(file); i++) {
-        preview[i] = file[i];
-    }
-    preview[i] = '\0';*/
 }
