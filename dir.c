@@ -6,6 +6,7 @@
 #include <sys/wait.h>
 #include <sys/stat.h>
 #include <ctype.h>
+#include <errno.h>
 
 #include "dir.h"
 
@@ -157,17 +158,19 @@ dir* read_directory(const char* directorypath) {
                 case DT_LNK:
                     dir_info->contents[i]->islink = 1;
                 case DT_UNKNOWN:
-                    if (stat(directory_entry->d_name, &sb) == 0) {
-                        if (S_ISDIR(sb.st_mode)) {
-                            dir_info->contents[i]->type = ENTRY_TYPE_DIRECTORY;
-                            dircount++;
-                        }
-                        else {
-                            dir_info->contents[i]->type = ENTRY_TYPE_FILE;
+                    if (stat(directory_entry->d_name, &sb) && errno == ENOENT || errno == ELOOP) {
+                        if (lstat(directory_entry->d_name, &sb)) {
+                            dir_info->contents[i]->type = ENTRY_TYPE_UNKNOWN;
+                            break;
                         }
                     }
+
+                    if (S_ISDIR(sb.st_mode)) {
+                        dir_info->contents[i]->type = ENTRY_TYPE_DIRECTORY;
+                        dircount++;
+                    }
                     else {
-                        dir_info->contents[i]->type = ENTRY_TYPE_UNKNOWN;
+                        dir_info->contents[i]->type = ENTRY_TYPE_FILE;
                     }
                     break;
                 default:
