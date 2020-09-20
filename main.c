@@ -451,21 +451,26 @@ int main(int argc, char* argv[])
                 break;
 
             case YANK:
-                copy_to_clipboard(&directory->contents[directory->cursor]->name, 1);
+                {
+                    if (directory->markedcount > 0) {
+                        char *filenames[directory->markedcount];
+                        int j = 0;
+                        for (int i = 0; i < directory->size && j < directory->markedcount; i++) {
+                            if (directory->contents[i]->marked) {
+                                filenames[j] = directory->contents[i]->name;
+                                j++;
+                            }
+                        }
+                        copy_to_clipboard(filenames, directory->markedcount);
+                    }
+                    else {
+                        copy_to_clipboard(&directory->contents[directory->cursor]->name, 1);
+                    }
+                }
                 break;
 
             case S_YANK:
-                {
-                    char *filenames[directory->markedcount];
-                    int j = 0;
-                    for (int i = 0; i < directory->size && j < directory->markedcount; i++) {
-                        if (directory->contents[i]->marked) {
-                            filenames[j] = directory->contents[i]->name;
-                            j++;
-                        }
-                    }
-                    copy_to_clipboard(filenames, directory->markedcount);
-                }
+                copy_to_clipboard(&directory->path, 1);
                 break;
 
             case PREVIEW:
