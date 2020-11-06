@@ -4,24 +4,13 @@
 #include <unistd.h>
 #include <string.h>
 #include <locale.h>
-#include <errno.h>
 #include <signal.h>
 
+#include "ui.c"
 #include "run.h"
 #include "dir.h"
 
 #define CTRL(x) (x - 64)
-
-#define W1RATIO 1/8
-#define W2RATIO 3/8
-#define W3RATIO 4/8
-
-#define WINYMAX(yMax) (yMax-1)
-#define WINYSIZE(yMax) (yMax-2)
-
-#define FILELINE(directory, i) (i - directory->index)
-#define CURSORLINE(directory) (FILELINE(directory, directory->cursor))
-
 enum ACTION {
     NONE,
     UP,
@@ -78,102 +67,6 @@ static struct keybinding keybindings[] = {
     {'q'        , QUIT          }
 };
 
-WINDOW *w1, *w2, *w3, *w2w3, *cmdw, *pathw, *wbetweenw2w3;
-
-int yMax,xMax;
-
-void initui() {
-    w1 =    newwin(WINYSIZE(yMax), xMax*W1RATIO, 1, 0);
-    w2 =    newwin(WINYSIZE(yMax), xMax*W2RATIO, 1, xMax*W1RATIO+1);
-    w3 =    newwin(WINYSIZE(yMax), xMax*W3RATIO, 1, (xMax*W1RATIO+1)+(xMax*W2RATIO)+1);
-    w2w3 =  newwin(WINYSIZE(yMax), xMax*W2RATIO + xMax*W3RATIO, 1, xMax*W1RATIO+1);
-    pathw = newwin(1, xMax, 0, 0);
-    cmdw =  newwin(1, xMax, yMax-1, 0);
-    wbetweenw2w3 = newwin(WINYSIZE(yMax), 1, 1, xMax*W1RATIO + xMax*W2RATIO + 1);
-
-}
-
-void handle_resize() {
-    endwin();
-    refresh();
-    clear();
-    delwin(w1);
-    delwin(w2);
-    delwin(w3);
-    delwin(w2w3);
-    delwin(pathw);
-    delwin(cmdw);
-    delwin(wbetweenw2w3);
-    getmaxyx(stdscr,yMax,xMax);
-    initui();
-}
-
-void print_path(char* path) {
-    wattron(pathw,COLOR_PAIR(2));
-    mvwaddstr(pathw,0,0,path);
-    wattroff(pathw,COLOR_PAIR(2));
-    wclrtoeol(pathw);
-    wrefresh(pathw);
-}
-
-void highlight_line(WINDOW* w, dir* directory, int line, attr_t attr) {
-    short color;
-    if (directory->contents[directory->index + line]->islink) {
-        color = 2;
-    }
-    else if (ISDIR(directory, line + directory->index)) {
-        color = 1;
-    }
-    else {
-        color = 0;
-    }
-    mvwchgat(w, line, 0, -1, attr, color, NULL);
-}
-
-void render_contents(WINDOW* w,dir* directory) {
-    if (!directory) {
-        return;
-    }
-    int i = 0, yMax, xMax;
-    getmaxyx(w, yMax, xMax);
-    if (directory->size == 0) {
-        wmove(w, 0, 0);
-        wclrtoeol(w);
-        wattron(w, COLOR_PAIR(3));
-        waddstr(w, "***EMPTY***");
-        wattroff(w, COLOR_PAIR(3));
-        i++;
-    }
-    while (i + directory->index < directory->size && i < yMax) {
-        if (directory->contents[directory->index + i]->islink) {
-            wattron(w, COLOR_PAIR(2));
-        }
-        else if (ISDIR(directory, i + directory->index)) {
-            wattron(w, COLOR_PAIR(1));
-        }
-
-        if (directory->contents[i + directory->index]->marked) {
-            mvwaddch(w, i, 0, '>');
-        }
-        else {
-            mvwaddch(w, i, 0, ' ');
-        }
-        waddnstr(w, directory->contents[i + directory->index]->name, xMax-2);
-
-        wclrtoeol(w);
-
-        i++;
-        wattroff(w, COLOR_PAIR(2));
-        wattroff(w, COLOR_PAIR(1));
-    }
-    wclrtobot(w);
-    if (directory->size > 0) {
-        highlight_line(w, directory, CURSORLINE(directory), A_STANDOUT);
-    }
-    wrefresh(w);
-
-}
-
 void init(){
     setlocale(LC_ALL, "");
     initscr();
@@ -190,71 +83,6 @@ void init(){
     set_escdelay(50);
     getmaxyx(stdscr,yMax,xMax);
     refresh();
-}
-
-void display_dir(dir* directory, char* preview) {
-    werase(wbetweenw2w3);
-    wrefresh(wbetweenw2w3);
-
-    if (directory->parentdir) {
-        render_contents(w1,directory->parentdir);
-    }
-    else {
-        werase(w1);
-        wrefresh(w1);
-    }
-
-    if (!ISDIR(directory, directory->cursor)) {
-        if (preview[0] != '\0') {
-            mvwaddstr(w3, 0, 0, preview);
-            wclrtobot(w3);
-            wrefresh(w3);
-            preview[0] = '\0';
-        }
-        else {
-            render_contents(w2w3, directory);
-        }
-    }
-    else {
-        if (directory->contents[directory->cursor]->dir_ptr != NULL) {
-            render_contents(w2, directory);
-            render_contents(w3,directory->contents[directory->cursor]->dir_ptr);
-        }
-        else {
-            if (open_entry(directory) == directory) {
-                render_contents(w2w3, directory);
-            }
-            else {
-                chdir(directory->path);
-                render_contents(w2, directory);
-                render_contents(w3, directory->contents[directory->cursor]->dir_ptr);
-            }
-        }
-    }
-
-}
-
-void print_cmd(dir* directory, char* str) {
-    wmove(cmdw, 0, 0);
-
-    if (str) {
-        waddstr(cmdw, str);
-    }
-    else if (errno) {
-        int temp = errno;
-        wattron(cmdw, COLOR_PAIR(3));
-        waddstr(cmdw, strerror(temp));
-        wattroff(cmdw, COLOR_PAIR(3));
-        errno = 0;
-    }
-
-    wclrtoeol(cmdw);
-
-    char* position = malloc(sizeof(*position) * xMax);
-    int num_bytes = snprintf(position, xMax, "%d/%d", directory->cursor + 1, directory->size);
-    mvwaddstr(cmdw, 0, xMax - num_bytes, position);
-
-    wrefresh(cmdw);
 }
 
 int find(dir* directory) {
@@ -279,7 +107,7 @@ int find(dir* directory) {
                 for (i = 0; i < directory->size; i++) {
                     j = (i + directory->cursor + 1) % directory->size;
                     if (strcasestr(directory->contents[j]->name, str)) {
-                        move_cursor(directory, WINYMAX(yMax), j - directory->cursor);
+                        dir_move_cursor(directory, WIN_YMAX(yMax), j - directory->cursor);
                         break;
                     }
                 }
@@ -291,7 +119,7 @@ int find(dir* directory) {
                         j += directory->size;
                     }
                     if (strcasestr(directory->contents[j]->name, str)) {
-                        move_cursor(directory, WINYMAX(yMax), j - directory->cursor);
+                        dir_move_cursor(directory, WIN_YMAX(yMax), j - directory->cursor);
                         break;
                     }
                 }
@@ -315,8 +143,8 @@ int find(dir* directory) {
         }
         mvwaddstr(cmdw, 0, 5, str);
         wclrtoeol(cmdw);
-        render_contents(w2, directory);
-        for (j = directory->index; j < directory->size && j < directory->index + WINYSIZE(yMax); j++) {
+        ui_print_dir(w2, directory);
+        for (j = directory->index; j < directory->size && j < directory->index + WIN_YSIZE(yMax); j++) {
             tmp = strcasestr(directory->contents[j]->name, str);
             if (tmp) {
                 mvwchgat(w2, FILELINE(directory, j), tmp - directory->contents[j]->name + 1, pos, A_STANDOUT, 4, NULL);
@@ -327,18 +155,60 @@ int find(dir* directory) {
     }
 }
 
+void display_dir(dir* directory, char* preview) {
+    werase(wbetweenw2w3);
+    wrefresh(wbetweenw2w3);
+
+    if (directory->parentdir) {
+        ui_print_dir(w1, directory->parentdir);
+    }
+    else {
+        werase(w1);
+        wrefresh(w1);
+    }
+
+    if (!IS_DIR(directory, directory->cursor)) {
+        if (preview[0] != '\0') {
+            mvwaddstr(w3, 0, 0, preview);
+            wclrtobot(w3);
+            wrefresh(w3);
+            preview[0] = '\0';
+        }
+        else {
+            ui_print_dir(w2w3, directory);
+        }
+    }
+    else {
+        if (directory->contents[directory->cursor]->dir_ptr != NULL) {
+            ui_print_dir(w2, directory);
+            ui_print_dir(w3, directory->contents[directory->cursor]->dir_ptr);
+        }
+        else {
+            if (dir_cd_cursor(directory) == directory) {
+                ui_print_dir(w2w3, directory);
+            }
+            else {
+                chdir(directory->path);
+                ui_print_dir(w2, directory);
+                ui_print_dir(w3, directory->contents[directory->cursor]->dir_ptr);
+            }
+        }
+    }
+
+}
+
 int main(int argc, char* argv[])
 {   
     struct sigaction sa;
     memset(&sa, 0, sizeof(struct sigaction));
-    sa.sa_handler = handle_resize;
+    sa.sa_handler = ui_handle_resize;
     sigaction(SIGWINCH, &sa, NULL);
 
     int ch;
     int temp = 0;
     init();
-    initui();
-    dir* directory = initdir();
+    ui_init();
+    dir* directory = dir_init();
 
     sigset_t sigs;
     sigemptyset(&sigs);
@@ -352,8 +222,8 @@ int main(int argc, char* argv[])
     while (true) {
 
         display_dir(directory, preview);
-        print_cmd(directory, NULL);
-        print_path(directory->path);
+        ui_print_cmd(directory, NULL);
+        ui_print_path(directory->path);
 
         ch = getch();
 
@@ -368,41 +238,41 @@ int main(int argc, char* argv[])
 
         switch (action) {
             case DOWN:
-                move_cursor(directory,WINYMAX(yMax),1);
+                dir_move_cursor(directory,WIN_YMAX(yMax),1);
                 break;
 
             case S_DOWN:
-                move_cursor(directory,WINYMAX(yMax),(WINYMAX(yMax)/2));
+                dir_move_cursor(directory,WIN_YMAX(yMax),(WIN_YMAX(yMax)/2));
                 break;
 
             case UP:
-                move_cursor(directory,WINYMAX(yMax),-1);
+                dir_move_cursor(directory,WIN_YMAX(yMax),-1);
                 break;
 
             case S_UP:
-                move_cursor(directory,WINYMAX(yMax),(-WINYMAX(yMax)/2));
+                dir_move_cursor(directory,WIN_YMAX(yMax),(-WIN_YMAX(yMax)/2));
                 break;
 
             case LEFT:
-                directory = up_dir(directory);
-                print_path(directory->path);
+                directory = dir_up(directory);
+                ui_print_path(directory->path);
                 break;    
 
             case RIGHT:
-                if (ISDIR(directory, directory->cursor)) {
-                    directory = open_entry(directory);
-                    print_path(directory->path);
+                if (IS_DIR(directory, directory->cursor)) {
+                    directory = dir_cd_cursor(directory);
+                    ui_print_path(directory->path);
                 }
                 else {
                     sigprocmask(SIG_BLOCK, &sigs, 0);
                     endwin();
-                    run(directory->contents[directory->cursor]->name,1);
+                    run_open_file(directory->contents[directory->cursor]->name, 1);
                     sigprocmask(SIG_UNBLOCK, &sigs, 0);
                 }
                 break;
 
             case S_RIGHT:
-                run(directory->contents[directory->cursor]->name,0);
+                run_open_file(directory->contents[directory->cursor]->name, 0);
                 break;
 
             case FIND:
@@ -412,17 +282,17 @@ int main(int argc, char* argv[])
                 break;
 
             case TERMINAL:
-                open_terminal();
+                run_open_terminal();
                 break;
 
             case RELOAD:
-                directory = reload_dir(directory);
+                directory = dir_reload(directory);
                 break;
 
             case EXTRACT:
                 endwin();
-                extract_file(directory->contents[directory->cursor]->name);
-                directory = reload_dir(directory);
+                run_extract_file(directory->contents[directory->cursor]->name);
+                directory = dir_reload(directory);
                 break;
 
             case SHELL:
@@ -461,28 +331,28 @@ int main(int argc, char* argv[])
                                 j++;
                             }
                         }
-                        copy_to_clipboard(filenames, directory->markedcount);
+                        run_copy_to_clipboard(filenames, directory->markedcount);
                     }
                     else {
-                        copy_to_clipboard(&directory->contents[directory->cursor]->name, 1);
+                        run_copy_to_clipboard(&directory->contents[directory->cursor]->name, 1);
                     }
                 }
                 break;
 
             case S_YANK:
-                copy_to_clipboard(&directory->path, 1);
+                run_copy_to_clipboard(&directory->path, 1);
                 break;
 
             case PREVIEW:
-                run_preview(directory->contents[directory->cursor]->name, preview, WINYSIZE(yMax) * W3RATIO * xMax);
+                run_preview(directory->contents[directory->cursor]->name, preview, WIN_YSIZE(yMax) * W3_RATIO * xMax);
                 break;
 
             case BEGIN:
-                move_cursor(directory, WINYMAX(yMax), -directory->cursor);
+                dir_move_cursor(directory, WIN_YMAX(yMax), -directory->cursor);
                 break;
 
             case END:
-                move_cursor(directory, WINYMAX(yMax), directory->size);
+                dir_move_cursor(directory, WIN_YMAX(yMax), directory->size);
                 break;
 
             case NONE:

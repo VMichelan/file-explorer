@@ -5,7 +5,7 @@
 #define TYPE_SIZE sizeof(unsigned char)
 #define PATH_SIZE sizeof(char)*4096
 
-#define ISDIR(directory, i) (i < directory->dircount)
+#define IS_DIR(directory, i) (i < directory->dircount)
 #define IS_PATH_ROOT(path) (path && path[0] == '/' && path[1] == '\0')
 
 enum ENTRY_TYPE {
@@ -43,14 +43,14 @@ struct dir{
     int dircount;
 };
 
-void free_dir(dir* dir_info);
-dir* read_directory();
-dir* open_entry(dir* directory);
-void move_cursor(dir* directory,int yMax,int number);
-void insert_dir(dir* directory);
-dir* up_dir(dir* directory);
-dir* initdir();
-dir* reload_dir(dir* directory);
+void dir_delete(dir*);
+dir* dir_create(const char*);
+dir* dir_cd_cursor(dir*);
+void dir_move_cursor(dir* , int, int);
+void dir_insert(dir*);
+dir* dir_up(dir*);
+dir* dir_init();
+dir* dir_reload(dir*);
 
 
 #endif

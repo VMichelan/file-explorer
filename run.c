@@ -12,7 +12,7 @@
 #define LEN(x) sizeof(x)/sizeof(*x)
 
 char* terminal[] = {"st", "-e"};
-char* fileopener[] = {"rifle"};
+char* fileopener[] = {"xdg-open"};
 char* terminaleditor[] = {"vim"};
 char* extractcmd[] = {"atool", "-x"};
 
@@ -68,7 +68,7 @@ int run_(char** arguments, int wait) {
     return 0;
 }
 
-int run(char* file,int wait) {
+int run_open_file(char* file,int wait) {
     char** arguments;
     int argumentindex = 0;
 
@@ -109,7 +109,7 @@ int run(char* file,int wait) {
     return wait;
 }
 
-int open_terminal() {
+int run_open_terminal() {
     char** arguments = malloc(sizeof(char*)*2);
     arguments[0] = terminal[0]; 
     arguments[1] = (char*) NULL;
@@ -120,7 +120,7 @@ int open_terminal() {
     return returnvalue;
 }
 
-void extract_file(char* filename) {
+void run_extract_file(char* filename) {
     char** arguments = malloc(sizeof(*arguments) * (LEN(extractcmd) + 2));
     int i;
     for (i = 0; i < LEN(extractcmd); i++) {
@@ -147,7 +147,7 @@ void run_shell() {
     free(arguments);
 }
 
-void copy_to_clipboard(char** filenames, int count) {
+void run_copy_to_clipboard(char** filenames, int count) {
     int pipefd[2];
     pipe(pipefd);
 

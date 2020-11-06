@@ -48,7 +48,7 @@ void* calloc_or_die(int size,int size2) {
 }
 
 
-void free_dir(dir *dir_info){
+void dir_free(dir *dir_info){
     int i;
     if (dir_info == NULL) {
         return;
@@ -117,7 +117,7 @@ void sort_dir(dir* directory){
     free(file_entries);
 }
 
-dir* read_directory(const char* directorypath) {
+dir* dir_create(const char* directorypath) {
     if (!directorypath)
         return NULL;
 
@@ -200,7 +200,7 @@ dir* read_directory(const char* directorypath) {
     return dir_info;
 }
 
-void insert_dir(dir* directory) {
+void dir_inser(dir* directory) {
     char* dirpath = strdup(directory->path);
     char* dirname;
     char* next = strtok(dirpath, "/");
@@ -220,7 +220,7 @@ void insert_dir(dir* directory) {
     free(dirpath);
 }
 
-dir* up_dir(dir* directory) {
+dir* dir_up(dir* directory) {
     if (IS_PATH_ROOT(directory->path)) {
         return directory;
     }
@@ -233,9 +233,9 @@ dir* up_dir(dir* directory) {
                     return directory->parentdir;
                 }
 
-                directory->parentdir->parentdir = read_directory(parentpath);
+                directory->parentdir->parentdir = dir_create(parentpath);
                 free(parentpath);
-                insert_dir(directory->parentdir);
+                dir_inser(directory->parentdir);
             }
         }
         chdir(directory->parentdir->path);
@@ -245,7 +245,7 @@ dir* up_dir(dir* directory) {
     return directory;
 }
 
-dir* open_entry(dir* directory) {
+dir* dir_cd_cursor(dir* directory) {
     if (directory->contents[directory->cursor]->dir_ptr == NULL) {
         char* foldername = directory->contents[directory->cursor]->name;
         char* path = malloc(sizeof(*path) * strlen(directory->path) + strlen(foldername) + 2);
@@ -257,12 +257,12 @@ dir* open_entry(dir* directory) {
         path[pathlen] = '/';
         path[pathlen + 1] = '\0';
 
-        dir* temp = read_directory(path);
+        dir* temp = dir_create(path);
 
         free(path);
 
         if (!temp || chdir(foldername) == -1) {
-            free_dir(temp);
+            dir_free(temp);
             return directory;
         }
 
@@ -274,7 +274,7 @@ dir* open_entry(dir* directory) {
     return directory->contents[directory->cursor]->dir_ptr;
 }
 
-void move_cursor(dir* directory,int yMax,int number) {
+void dir_move_cursor(dir* directory,int yMax,int number) {
     if(number < 0) {
         if(directory->cursor > 0) {
             directory->cursor += number;
@@ -300,7 +300,7 @@ void move_cursor(dir* directory,int yMax,int number) {
     }
 }
 
-dir* initdir() {
+dir* dir_init() {
     char* pwd = getenv("PWD");
     int pwdlen = strlen(pwd);
     char* path = malloc_or_die(sizeof(*path) * pwdlen + 2);
@@ -311,21 +311,21 @@ dir* initdir() {
         path[pwdlen + 1] = '\0';
     }
 
-    dir* directory = read_directory(path);
+    dir* directory = dir_create(path);
     free(path);
 
     if (!IS_PATH_ROOT(path)) {
         char* parentpath = dir_parentpath(directory); 
-        directory->parentdir = read_directory(parentpath);
+        directory->parentdir = dir_create(parentpath);
         free(parentpath);
-        insert_dir(directory);
+        dir_inser(directory);
     }
 
     return directory;
 }
 
-dir* reload_dir(dir* directory) {
-    dir* newdirectory = read_directory(directory->path);
+dir* dir_reload(dir* directory) {
+    dir* newdirectory = dir_create(directory->path);
 
     for (int i = 0; i < directory->dircount; i++) {
         if (directory->contents[i]->dir_ptr) {
@@ -356,6 +356,6 @@ dir* reload_dir(dir* directory) {
     newdirectory->cursor = directory->cursor;
     newdirectory->index = directory->index;
 
-    free_dir(directory);
+    dir_free(directory);
     return newdirectory;
 }
