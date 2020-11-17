@@ -63,27 +63,6 @@ void dir_free(dir *dir_info){
     free(dir_info);
 }
 
-char* dir_parentpath(dir* directory) {
-    if (directory->parentdir)
-        return directory->parentdir->path;
-    else if (IS_PATH_ROOT(directory->path))
-        return NULL;
-
-    char* path = strdup(directory->path);
-    char* path_end;
-    path_end = strrchr(path, '/');
-    *path_end = '\0';
-    path_end = strrchr(path, '/');
-    path_end++;
-
-    *path_end = '\0';
-    char* parentpath = strdup(path);
-
-    free(path);
-
-    return parentpath;
-}
-
 int entry_cmp(const void * entry1, const void * entry2) {
     return strcasecmp((*(entry **) entry1)->name, (*(entry **) entry2)->name);
 }
@@ -185,11 +164,13 @@ dir* dir_create(const char* directorypath) {
 
     closedir(directory);
 
+    dir_info->path = malloc_or_die(sizeof(*dir_info->path) * PATH_MAX);
+    getcwd(dir_info->path, PATH_MAX);
+
     chdir(cwd);
     free(cwd);
 
     dir_info->dircount = dircount;
-    dir_info->path = strdup(directorypath);
     dir_info->size = i;
     dir_info->markedcount = 0;
     dir_info->cursor = 0;
@@ -228,13 +209,7 @@ dir* dir_up(dir* directory) {
     if (directory->parentdir) {
         if (!directory->parentdir->parentdir) {
             if (!IS_PATH_ROOT(directory->parentdir->path)) {
-                char* parentpath = dir_parentpath(directory->parentdir);
-                if (!parentpath) {
-                    return directory->parentdir;
-                }
-
-                directory->parentdir->parentdir = dir_create(parentpath);
-                free(parentpath);
+                directory->parentdir->parentdir = dir_create("../..");
                 dir_inser(directory->parentdir);
             }
         }
@@ -315,9 +290,7 @@ dir* dir_init() {
     free(path);
 
     if (!IS_PATH_ROOT(path)) {
-        char* parentpath = dir_parentpath(directory); 
-        directory->parentdir = dir_create(parentpath);
-        free(parentpath);
+        directory->parentdir = dir_create("..");
         dir_inser(directory);
     }
 
