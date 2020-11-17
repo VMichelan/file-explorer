@@ -28,13 +28,23 @@ void ui_init_win() {
     wbetweenw2w3 = newwin(WIN_YSIZE(yMax), 1, 1, xMax*W1_RATIO + xMax*W2_RATIO + 1);
 }
 
+enum COLOR {
+    COLOR_DEFAULT = 0,
+    COLOR_DIRECTORY = 1,
+    COLOR_PATH = 2,
+    COLOR_ERROR = 3,
+    COLOR_LINK = 4,
+};
+
 void ui_init() {
     start_color();
     use_default_colors();
-    init_pair(1,COLOR_BLUE,-1);
-    init_pair(2,COLOR_GREEN,-1);
-    init_pair(3,-1,COLOR_RED);
-    init_pair(4, COLOR_YELLOW, COLOR_BLACK);
+
+    init_pair(1, COLOR_BLUE,    -1          ); //directory
+    init_pair(2, COLOR_GREEN,   -1          ); //path
+    init_pair(3, -1,            COLOR_RED   ); //error
+    init_pair(4, COLOR_CYAN,    -1         ); //link
+
     refresh();
     ui_init_win();
 }
@@ -61,10 +71,20 @@ void ui_print_path(char* path) {
     wrefresh(pathw);
 }
 
+enum COLOR get_color(struct entry *e) {
+    if (e->islink) {
+        return COLOR_LINK;
+    }
+    else if (e->type == ENTRY_TYPE_DIRECTORY) {
+        return COLOR_DIRECTORY;
+    }
+    return COLOR_DEFAULT;
+}
+
 void ui_highlight_line(WINDOW* w, dir* directory, int line, attr_t attr) {
     short color;
     if (directory->contents[directory->index + line]->islink) {
-        color = 2;
+        color = 4;
     }
     else if (IS_DIR(directory, line + directory->index)) {
         color = 1;
@@ -90,12 +110,9 @@ void ui_print_dir(WINDOW* w, dir* directory) {
         i++;
     }
     while (i + directory->index < directory->size && i < yMax) {
-        if (directory->contents[directory->index + i]->islink) {
-            wattron(w, COLOR_PAIR(2));
-        }
-        else if (IS_DIR(directory, i + directory->index)) {
-            wattron(w, COLOR_PAIR(1));
-        }
+        enum COLOR c = get_color(directory->contents[i + directory->index]); 
+
+        wattron(w, COLOR_PAIR(c));
 
         if (directory->contents[i + directory->index]->marked) {
             mvwaddch(w, i, 0, '>');
@@ -108,12 +125,11 @@ void ui_print_dir(WINDOW* w, dir* directory) {
         wclrtoeol(w);
 
         i++;
-        wattroff(w, COLOR_PAIR(2));
-        wattroff(w, COLOR_PAIR(1));
+        wattroff(w, COLOR_PAIR(c));
     }
     wclrtobot(w);
     if (directory->size > 0) {
-        ui_highlight_line(w, directory, CURSORLINE(directory), A_STANDOUT);
+        mvwchgat(w, CURSORLINE(directory), 0, -1, A_STANDOUT, get_color(directory->contents[directory->cursor]), NULL);
     }
     wrefresh(w);
 }
