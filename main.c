@@ -67,24 +67,6 @@ static struct keybinding keybindings[] = {
     {'q'        , QUIT          }
 };
 
-void init(){
-    setlocale(LC_ALL, "");
-    initscr();
-    start_color();
-    use_default_colors();
-    init_pair(1,COLOR_BLUE,-1);
-    init_pair(2,COLOR_GREEN,-1);
-    init_pair(3,-1,COLOR_RED);
-    init_pair(4, COLOR_YELLOW, COLOR_BLACK);
-    raw();
-    noecho();
-    curs_set(0);
-    keypad(stdscr,TRUE);
-    set_escdelay(50);
-    getmaxyx(stdscr,yMax,xMax);
-    refresh();
-}
-
 int find(dir* directory) {
     int pos = 0, i, j;
     int ch;
@@ -206,7 +188,14 @@ int main(int argc, char* argv[])
 
     int ch;
     int temp = 0;
-    init();
+
+    initscr();
+    setlocale(LC_ALL, "");
+    raw();
+    noecho();
+    curs_set(0);
+    keypad(stdscr,TRUE);
+    set_escdelay(50);
     ui_init();
     dir* directory = dir_init();
 

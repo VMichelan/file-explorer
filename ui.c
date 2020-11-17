@@ -17,7 +17,8 @@ WINDOW *w1, *w2, *w3, *w2w3, *cmdw, *pathw, *wbetweenw2w3;
 
 int yMax,xMax;
 
-void ui_init() {
+void ui_init_win() {
+    getmaxyx(stdscr,yMax,xMax);
     w1 =    newwin(WIN_YSIZE(yMax), xMax*W1_RATIO, 1, 0);
     w2 =    newwin(WIN_YSIZE(yMax), xMax*W2_RATIO, 1, xMax*W1_RATIO+1);
     w3 =    newwin(WIN_YSIZE(yMax), xMax*W3_RATIO, 1, (xMax*W1_RATIO+1)+(xMax*W2_RATIO)+1);
@@ -25,6 +26,17 @@ void ui_init() {
     pathw = newwin(1, xMax, 0, 0);
     cmdw =  newwin(1, xMax, yMax-1, 0);
     wbetweenw2w3 = newwin(WIN_YSIZE(yMax), 1, 1, xMax*W1_RATIO + xMax*W2_RATIO + 1);
+}
+
+void ui_init() {
+    start_color();
+    use_default_colors();
+    init_pair(1,COLOR_BLUE,-1);
+    init_pair(2,COLOR_GREEN,-1);
+    init_pair(3,-1,COLOR_RED);
+    init_pair(4, COLOR_YELLOW, COLOR_BLACK);
+    refresh();
+    ui_init_win();
 }
 
 void ui_handle_resize() {
@@ -38,8 +50,7 @@ void ui_handle_resize() {
     delwin(pathw);
     delwin(cmdw);
     delwin(wbetweenw2w3);
-    getmaxyx(stdscr,yMax,xMax);
-    ui_init();
+    ui_init_win();
 }
 
 void ui_print_path(char* path) {
