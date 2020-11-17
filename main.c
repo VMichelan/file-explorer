@@ -220,7 +220,6 @@ int main(int argc, char* argv[])
     preview[0] = '\0';
 
     while (true) {
-
         display_dir(directory, preview);
         ui_print_cmd(directory, NULL);
         ui_print_path(directory->path);
@@ -362,9 +361,24 @@ int main(int argc, char* argv[])
                 clear();
                 refresh(); 
                 endwin();
+                for (int i = 0; i < argc; i++) {
+                    if (!strcmp(argv[i], "-o")) {
+                        char *runtime_dir = getenv("XDG_RUNTIME_DIR");
+                        if (runtime_dir) {
+                            char *file_path = malloc(sizeof(*file_path) * strlen(runtime_dir) + 100);
+                            strncpy(file_path, runtime_dir, strlen(runtime_dir));
+                            strcat(file_path, "/tnfx");
+                            FILE *f = fopen(file_path, "w");
+                            fprintf(f, directory->path);
+                            fclose(f);
+                            free(file_path);
+                        }
+                    }
+                }
                 return 0;
         } 
 
     }
+
     return 0;
 }
