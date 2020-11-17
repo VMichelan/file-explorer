@@ -220,33 +220,13 @@ dir* dir_up(dir* directory) {
     return directory;
 }
 
-dir* dir_cd_cursor(dir* directory) {
-    if (directory->contents[directory->cursor]->dir_ptr == NULL) {
-        char* foldername = directory->contents[directory->cursor]->name;
-        char* path = malloc(sizeof(*path) * strlen(directory->path) + strlen(foldername) + 2);
-
-        strncpy(path, directory->path, strlen(directory->path) + 1);
-        strncat(path, foldername, strlen(foldername));
-
-        int pathlen = strlen(path);
-        path[pathlen] = '/';
-        path[pathlen + 1] = '\0';
-
-        dir* temp = dir_create(path);
-
-        free(path);
-
-        if (!temp || chdir(foldername) == -1) {
-            dir_free(temp);
-            return directory;
-        }
-
-        temp->parentdir = directory;
-        directory->contents[directory->cursor]->dir_ptr = temp;
+void dir_load_dir_at_cursor(dir *directory) {
+    entry *entry_at_cursor = directory->contents[directory->cursor];
+    if (entry_at_cursor->type == ENTRY_TYPE_DIRECTORY && !entry_at_cursor->dir_ptr) {
+        entry_at_cursor->dir_ptr = dir_create(entry_at_cursor->name);
+        if (entry_at_cursor->dir_ptr)
+            entry_at_cursor->dir_ptr->parentdir = directory;
     }
-
-    chdir(directory->contents[directory->cursor]->dir_ptr->path);
-    return directory->contents[directory->cursor]->dir_ptr;
 }
 
 void dir_move_cursor(dir* directory,int yMax,int number) {

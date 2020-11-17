@@ -166,17 +166,14 @@ void display_dir(dir* directory, char* preview) {
             ui_print_dir(w3, directory->contents[directory->cursor]->dir_ptr);
         }
         else {
-            if (dir_cd_cursor(directory) == directory) {
-                ui_print_dir(w2w3, directory);
-            }
-            else {
-                chdir(directory->path);
-                ui_print_dir(w2, directory);
-                ui_print_dir(w3, directory->contents[directory->cursor]->dir_ptr);
-            }
+            ui_print_dir(w2w3, directory);
         }
     }
+}
 
+void move_cursor(dir *directory, int n) {
+    dir_move_cursor(directory,WIN_YMAX(yMax), n);
+    dir_load_dir_at_cursor(directory);
 }
 
 int main(int argc, char* argv[])
@@ -198,6 +195,7 @@ int main(int argc, char* argv[])
     set_escdelay(50);
     ui_init();
     dir* directory = dir_init();
+    dir_load_dir_at_cursor(directory);
 
     sigset_t sigs;
     sigemptyset(&sigs);
@@ -226,19 +224,19 @@ int main(int argc, char* argv[])
 
         switch (action) {
             case DOWN:
-                dir_move_cursor(directory,WIN_YMAX(yMax),1);
+                move_cursor(directory,1);
                 break;
 
             case S_DOWN:
-                dir_move_cursor(directory,WIN_YMAX(yMax),(WIN_YMAX(yMax)/2));
+                move_cursor(directory,(WIN_YMAX(yMax)/2));
                 break;
 
             case UP:
-                dir_move_cursor(directory,WIN_YMAX(yMax),-1);
+                move_cursor(directory,-1);
                 break;
 
             case S_UP:
-                dir_move_cursor(directory,WIN_YMAX(yMax),(-WIN_YMAX(yMax)/2));
+                move_cursor(directory,(-WIN_YMAX(yMax)/2));
                 break;
 
             case LEFT:
@@ -247,8 +245,9 @@ int main(int argc, char* argv[])
                 break;    
 
             case RIGHT:
-                if (IS_DIR(directory, directory->cursor)) {
-                    directory = dir_cd_cursor(directory);
+                if (IS_DIR(directory, directory->cursor) && directory->contents[directory->cursor]->dir_ptr) {
+                    chdir(directory->contents[directory->cursor]->dir_ptr->path);
+                    directory = directory->contents[directory->cursor]->dir_ptr;
                     ui_print_path(directory->path);
                 }
                 else {

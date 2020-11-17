@@ -45,6 +45,7 @@ struct dir{
 
 void dir_delete(dir*);
 dir* dir_create(const char*);
+void dir_load_dir_at_cursor(dir*);
 dir* dir_cd_cursor(dir*);
 void dir_move_cursor(dir* , int, int);
 void dir_insert(dir*);
