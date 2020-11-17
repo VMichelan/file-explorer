@@ -178,6 +178,7 @@ dir* dir_create(const char* directorypath) {
     dir_info->parentdir = NULL;
     sort_dir(dir_info);
 
+    errno = 0;
     return dir_info;
 }
 
