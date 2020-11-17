@@ -5,9 +5,6 @@
 #define TYPE_SIZE sizeof(unsigned char)
 #define PATH_SIZE sizeof(char)*4096
 
-#define IS_DIR(directory, i) (i < directory->dircount)
-#define IS_PATH_ROOT(path) (path && path[0] == '/' && path[1] == '\0')
-
 enum ENTRY_TYPE {
     ENTRY_TYPE_UNKNOWN,
     ENTRY_TYPE_FILE,
@@ -19,6 +16,9 @@ enum ENTRY_TYPE {
     ENTRY_TYPE_DIRECTORY,
     ENTRY_TYPE_LINK,
 };
+
+#define IS_DIR(directory, i) (directory->contents[i]->type == ENTRY_TYPE_DIRECTORY)
+#define IS_PATH_ROOT(path) (path && path[0] == '/' && path[1] == '\0')
 
 typedef struct entry entry;
 
