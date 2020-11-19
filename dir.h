@@ -29,12 +29,12 @@ struct entry {
     char marked;
     char islink;
     enum ENTRY_TYPE type;
-    dir* dir_ptr;
     char* preview;
 };
 
 struct dir{
     entry** contents;
+    dir** dir_ptr;
     char* path;
     dir* parentdir;
     int size;

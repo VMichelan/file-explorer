@@ -55,9 +55,11 @@ void dir_free(dir *dir_info){
     }
     for (i = 0; i < dir_info->size; i++) {
         free(dir_info->contents[i]->name);
-        free(dir_info->contents[i]->dir_ptr);
         free(dir_info->contents[i]->preview);
         free(dir_info->contents[i]);
+        if (i < dir_info->dircount) {
+            dir_free(dir_info->dir_ptr[i]);
+        }
     }
     free(dir_info->contents);
     free(dir_info->path);
@@ -159,7 +161,6 @@ dir* dir_create(const char* directorypath) {
                     break;
             }
 
-            dir_info->contents[i]->dir_ptr = NULL;
             i++;
         }
     }
@@ -173,6 +174,7 @@ dir* dir_create(const char* directorypath) {
     free(cwd);
 
     dir_info->dircount = dircount;
+    dir_info->dir_ptr = calloc_or_die(sizeof(*(dir_info->dir_ptr)), dircount);
     dir_info->size = i;
     dir_info->markedcount = 0;
     dir_info->cursor = 0;
@@ -195,7 +197,7 @@ void dir_inser(dir* directory) {
 
     for (int i = 0; i < directory->parentdir->size; i++) {
         if (strcmp(dirname, directory->parentdir->contents[i]->name) == 0) {
-            directory->parentdir->contents[i]->dir_ptr = directory;
+            directory->parentdir->dir_ptr[i] = directory;
             directory->parentdir->cursor = i;
             break;
         }
@@ -225,10 +227,10 @@ dir* dir_up(dir* directory) {
 
 void dir_load_dir_at_cursor(dir *directory) {
     entry *entry_at_cursor = directory->contents[directory->cursor];
-    if (entry_at_cursor->type == ENTRY_TYPE_DIRECTORY && !entry_at_cursor->dir_ptr) {
-        entry_at_cursor->dir_ptr = dir_create(entry_at_cursor->name);
-        if (entry_at_cursor->dir_ptr)
-            entry_at_cursor->dir_ptr->parentdir = directory;
+    if (entry_at_cursor->type == ENTRY_TYPE_DIRECTORY && !directory->dir_ptr[directory->cursor]) {
+        directory->dir_ptr[directory->cursor] = dir_create(entry_at_cursor->name);
+        if (directory->dir_ptr[directory->cursor])
+            directory->dir_ptr[directory->cursor]->parentdir = directory;
     }
 }
 
@@ -284,16 +286,16 @@ dir* dir_reload(dir* directory) {
     dir* newdirectory = dir_create(directory->path);
 
     for (int i = 0; i < directory->dircount; i++) {
-        if (directory->contents[i]->dir_ptr) {
-            directory->contents[i]->dir_ptr->parentdir = newdirectory;
+        if (directory->dir_ptr[i]) {
+            directory->dir_ptr[i]->parentdir = newdirectory;
         }
     }
 
     for (int i = 0; i < newdirectory->dircount; i++) {
         for (int j = i; j < directory->dircount; j++) {
             if (!strcmp(newdirectory->contents[i]->name, directory->contents[j]->name)) {
-                newdirectory->contents[i]->dir_ptr = directory->contents[j]->dir_ptr;
-                directory->contents[j]->dir_ptr = NULL;
+                newdirectory->dir_ptr[i] = directory->dir_ptr[i];
+                directory->dir_ptr[i] = NULL;
                 break;
             }
         }
@@ -301,8 +303,8 @@ dir* dir_reload(dir* directory) {
 
     if (directory->parentdir) {
         for (int i = 0; i < directory->parentdir->dircount; i++) {
-            if (directory->parentdir->contents[i]->dir_ptr == directory) {
-                directory->parentdir->contents[i]->dir_ptr= newdirectory;
+            if (directory->parentdir->dir_ptr[i] == directory) {
+                directory->parentdir->dir_ptr[i]= newdirectory;
                 break;
             }
         }

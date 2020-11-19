@@ -162,9 +162,9 @@ void display_dir(dir* directory, char* preview) {
         }
     }
     else {
-        if (directory->contents[directory->cursor]->dir_ptr != NULL) {
+        if (directory->dir_ptr[directory->cursor] != NULL) {
             ui_print_dir(w2, directory);
-            ui_print_dir(w3, directory->contents[directory->cursor]->dir_ptr);
+            ui_print_dir(w3, directory->dir_ptr[directory->cursor]);
         }
         else {
             ui_print_dir(w2w3, directory);
@@ -247,12 +247,12 @@ int main(int argc, char* argv[])
 
             case RIGHT:
                 if (IS_DIR(directory, directory->cursor)) {
-                    if (!directory->contents[directory->cursor]->dir_ptr) {
+                    if (!directory->dir_ptr[directory->cursor]) {
                         dir_load_dir_at_cursor(directory);
                     }
-                    if (directory->contents[directory->cursor]->dir_ptr) {
-                        chdir(directory->contents[directory->cursor]->dir_ptr->path);
-                        directory = directory->contents[directory->cursor]->dir_ptr;
+                    if (directory->dir_ptr[directory->cursor]) {
+                        chdir(directory->dir_ptr[directory->cursor]->path);
+                        directory = directory->dir_ptr[directory->cursor];
                         if (directory->contents[directory->cursor]->type == ENTRY_TYPE_DIRECTORY) {
                             dir_load_dir_at_cursor(directory);
                         }
