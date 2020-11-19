@@ -292,10 +292,10 @@ dir* dir_reload(dir* directory) {
     }
 
     for (int i = 0; i < newdirectory->dircount; i++) {
-        for (int j = i; j < directory->dircount; j++) {
+        for (int j = 0; j < directory->dircount; j++) {
             if (!strcmp(newdirectory->contents[i]->name, directory->contents[j]->name)) {
-                newdirectory->dir_ptr[i] = directory->dir_ptr[i];
-                directory->dir_ptr[i] = NULL;
+                newdirectory->dir_ptr[i] = directory->dir_ptr[j];
+                directory->dir_ptr[j] = NULL;
                 break;
             }
         }
