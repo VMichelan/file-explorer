@@ -30,6 +30,7 @@ struct entry {
     char islink;
     enum ENTRY_TYPE type;
     dir* dir_ptr;
+    char* preview;
 };
 
 struct dir{

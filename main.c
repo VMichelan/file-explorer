@@ -150,11 +150,12 @@ void display_dir(dir* directory, char* preview) {
     }
 
     if (!IS_DIR(directory, directory->cursor)) {
-        if (preview[0] != '\0') {
-            mvwaddstr(w3, 0, 0, preview);
+        if (directory->contents[directory->cursor]->preview) {
+            mvwaddstr(w3, 0, 0, directory->contents[directory->cursor]->preview);
             wclrtobot(w3);
             wrefresh(w3);
             preview[0] = '\0';
+            ui_print_dir(w2, directory);
         }
         else {
             ui_print_dir(w2w3, directory);
@@ -331,7 +332,7 @@ int main(int argc, char* argv[])
                 break;
 
             case PREVIEW:
-                run_preview(directory->contents[directory->cursor]->name, preview, WIN_YSIZE(yMax) * W3_RATIO * xMax);
+                directory->contents[directory->cursor]->preview = run_preview(directory->contents[directory->cursor]->name, WIN_YSIZE(yMax) * W3_RATIO * xMax);
                 break;
 
             case BEGIN:

@@ -56,6 +56,7 @@ void dir_free(dir *dir_info){
     for (i = 0; i < dir_info->size; i++) {
         free(dir_info->contents[i]->name);
         free(dir_info->contents[i]->dir_ptr);
+        free(dir_info->contents[i]->preview);
         free(dir_info->contents[i]);
     }
     free(dir_info->contents);
@@ -126,6 +127,7 @@ dir* dir_create(const char* directorypath) {
             strcpy(dir_info->contents[i]->name, directory_entry->d_name);
             dir_info->contents[i]->marked = 0;
             dir_info->contents[i]->islink = 0;
+            dir_info->contents[i]->preview = NULL;
             switch (directory_entry->d_type) {
                 case DT_REG:
                     dir_info->contents[i]->type = ENTRY_TYPE_FILE;

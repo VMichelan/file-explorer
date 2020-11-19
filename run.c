@@ -171,15 +171,14 @@ void run_copy_to_clipboard(char** filenames, int count) {
     return;
 }
 
-void run_preview(char* file, char* preview, int previewsize) {
+char * run_preview(char* file, int previewsize) {
     if (!istextfile(file)) {
-        return;
+        return NULL;
     }
+    char *preview = malloc(sizeof(*preview) * previewsize + 1);
     FILE* f = fopen(file, "r");
     int bytesread = fread(preview, 1, previewsize, f);
-    if (bytesread == previewsize) {
-        bytesread--;
-    }
     preview[bytesread] = '\0';
     fclose(f);
+    return preview;
 }
