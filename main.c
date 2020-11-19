@@ -246,10 +246,18 @@ int main(int argc, char* argv[])
                 break;    
 
             case RIGHT:
-                if (IS_DIR(directory, directory->cursor) && directory->contents[directory->cursor]->dir_ptr) {
-                    chdir(directory->contents[directory->cursor]->dir_ptr->path);
-                    directory = directory->contents[directory->cursor]->dir_ptr;
-                    ui_print_path(directory->path);
+                if (IS_DIR(directory, directory->cursor)) {
+                    if (!directory->contents[directory->cursor]->dir_ptr) {
+                        dir_load_dir_at_cursor(directory);
+                    }
+                    if (directory->contents[directory->cursor]->dir_ptr) {
+                        chdir(directory->contents[directory->cursor]->dir_ptr->path);
+                        directory = directory->contents[directory->cursor]->dir_ptr;
+                        if (directory->contents[directory->cursor]->type == ENTRY_TYPE_DIRECTORY) {
+                            dir_load_dir_at_cursor(directory);
+                        }
+                        ui_print_path(directory->path);
+                    }
                 }
                 else {
                     sigprocmask(SIG_BLOCK, &sigs, 0);
