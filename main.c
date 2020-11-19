@@ -149,6 +149,11 @@ void display_dir(dir* directory, char* preview) {
         wrefresh(w1);
     }
 
+    if (directory->size == 0) {
+        ui_print_dir(w2w3, directory);
+        return;
+    }
+
     if (!IS_DIR(directory, directory->cursor)) {
         if (directory->contents[directory->cursor]->preview) {
             mvwaddstr(w3, 0, 0, directory->contents[directory->cursor]->preview);
@@ -253,7 +258,7 @@ int main(int argc, char* argv[])
                     if (directory->dir_ptr[directory->cursor]) {
                         chdir(directory->dir_ptr[directory->cursor]->path);
                         directory = directory->dir_ptr[directory->cursor];
-                        if (directory->contents[directory->cursor]->type == ENTRY_TYPE_DIRECTORY) {
+                        if (directory->size > 0 && directory->contents[directory->cursor]->type == ENTRY_TYPE_DIRECTORY) {
                             dir_load_dir_at_cursor(directory);
                         }
                         ui_print_path(directory->path);
