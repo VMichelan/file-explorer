@@ -267,13 +267,13 @@ int main(int argc, char* argv[])
                 else {
                     sigprocmask(SIG_BLOCK, &sigs, 0);
                     endwin();
-                    run_open_file(directory->contents[directory->cursor]->name, 1);
+                    run_open_file(directory->contents[directory->cursor], 1);
                     sigprocmask(SIG_UNBLOCK, &sigs, 0);
                 }
                 break;
 
             case S_RIGHT:
-                run_open_file(directory->contents[directory->cursor]->name, 0);
+                run_open_file(directory->contents[directory->cursor], 0);
                 break;
 
             case FIND:
@@ -292,7 +292,7 @@ int main(int argc, char* argv[])
 
             case EXTRACT:
                 endwin();
-                run_extract_file(directory->contents[directory->cursor]->name);
+                run_extract_file(directory->contents[directory->cursor]);
                 directory = dir_reload(directory);
                 break;
 
@@ -345,7 +345,7 @@ int main(int argc, char* argv[])
                 break;
 
             case PREVIEW:
-                directory->contents[directory->cursor]->preview = run_preview(directory->contents[directory->cursor]->name, WIN_YSIZE(yMax) * W3_RATIO * xMax);
+                run_preview(directory->contents[directory->cursor], WIN_YSIZE(yMax) * W3_RATIO * xMax);
                 break;
 
             case BEGIN:

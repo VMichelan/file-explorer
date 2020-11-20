@@ -1,12 +1,14 @@
 #ifndef RUN_H_
 #define RUN_H_
 
-int run_open_file(char*, int);
+#include "entry.h"
+
+int run_open_file(entry *, int);
 int run_open_terminal();
-void run_extract_file(char* filename);
+void run_extract_file(entry *);
 void run_shell();
-void run_copy_to_clipboard(char** filenames, int count);
-char * run_preview(char* file, int previewsize);
+void run_copy_to_clipboard(char**, int);
+void run_preview(entry*, int);
 
 #endif
 

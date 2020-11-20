@@ -9,6 +9,8 @@
 
 #include "run.h"
 
+#include "entry.h"
+
 #define LEN(x) sizeof(x)/sizeof(*x)
 
 char* terminal[] = {"st", "-e"};
@@ -21,13 +23,13 @@ char* shell = NULL;
 
 magic_t cookie = NULL;
 
-char istextfile(char* filename) {
+char istextfile(entry* file) {
     if (!cookie) {
         cookie = magic_open(MAGIC_MIME);
         magic_load(cookie, NULL);
     }
 
-    const char* output = magic_file(cookie, filename);
+    const char* output = magic_file(cookie, file->name);
     errno = 0; //magic_file sets errno for invalid argument, but works for some reason
 
     return !strstr(output, "charset=binary") || strstr(output, "inode/x-empty");
@@ -68,7 +70,7 @@ int run_(char** arguments, int wait) {
     return 0;
 }
 
-int run_open_file(char* file,int wait) {
+int run_open_file(entry* file,int wait) {
     char** arguments;
     int argumentindex = 0;
 
@@ -99,7 +101,7 @@ int run_open_file(char* file,int wait) {
 
     }
 
-    arguments[argumentindex++] = file;
+    arguments[argumentindex++] = file->name;
     arguments[argumentindex++] = NULL;
 
     run_(arguments,wait);
@@ -120,13 +122,13 @@ int run_open_terminal() {
     return returnvalue;
 }
 
-void run_extract_file(char* filename) {
+void run_extract_file(entry* file) {
     char** arguments = malloc(sizeof(*arguments) * (LEN(extractcmd) + 2));
     int i;
     for (i = 0; i < LEN(extractcmd); i++) {
         arguments[i] = extractcmd[i];
     }
-    arguments[i++] = filename;
+    arguments[i++] = file->name;
     arguments[i++] = (char*) NULL;
 
     run_(arguments, 1);
@@ -171,14 +173,14 @@ void run_copy_to_clipboard(char** filenames, int count) {
     return;
 }
 
-char * run_preview(char* file, int previewsize) {
+void run_preview(entry* file, int previewsize) {
     if (!istextfile(file)) {
-        return NULL;
+        return;
     }
     char *preview = malloc(sizeof(*preview) * previewsize + 1);
-    FILE* f = fopen(file, "r");
+    FILE* f = fopen(file->name, "r");
     int bytesread = fread(preview, 1, previewsize, f);
     preview[bytesread] = '\0';
     fclose(f);
-    return preview;
+    file->preview = preview;
 }
