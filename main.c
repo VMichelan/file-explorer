@@ -191,6 +191,8 @@ int main(int argc, char* argv[])
 
     int ch;
     int temp = 0;
+    int begx, begy;
+    int xmaxw3, ymaxw3;
 
     initscr();
     setlocale(LC_ALL, "");
@@ -345,7 +347,19 @@ int main(int argc, char* argv[])
                 break;
 
             case PREVIEW:
-                run_preview(directory->contents[directory->cursor], WIN_YSIZE(yMax) * W3_RATIO * xMax);
+                getbegyx(w3, begy, begx);
+                begx++;
+                getmaxyx(w3, ymaxw3, xmaxw3);
+                run_preview(directory->path, directory->contents[directory->cursor], begx, begy, xmaxw3, ymaxw3);
+                if (directory->contents[directory->cursor]->type == ENTRY_TYPE_IMAGE) {
+                    wclear(w3);
+                    wclear(wbetweenw2w3);
+                    wrefresh(w3);
+                    wrefresh(wbetweenw2w3);
+                    ch = getch();
+                    run_clear_image_preview(directory->path, directory->contents[directory->cursor], begx, begy, xmaxw3, ymaxw3);
+                    ungetch(ch);
+                }
                 break;
 
             case BEGIN:
@@ -363,6 +377,7 @@ int main(int argc, char* argv[])
                 clear();
                 refresh(); 
                 endwin();
+                run_cleanup();
                 for (int i = 0; i < argc; i++) {
                     if (!strcmp(argv[i], "-o")) {
                         char *runtime_dir = getenv("XDG_RUNTIME_DIR");

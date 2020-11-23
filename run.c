@@ -6,12 +6,17 @@
 #include <ncurses.h>
 #include <magic.h>
 #include <errno.h>
+#include <sys/ioctl.h>
 
 #include "run.h"
 
 #include "entry.h"
 
 #define LEN(x) sizeof(x)/sizeof(*x)
+
+#define PREVIEWSIZE 1024
+
+#define W3MIMGDISPLAYPATH "/usr/lib/w3m/w3mimgdisplay"
 
 char* terminal[] = {"st", "-e"};
 char* fileopener[] = {"xdg-open"};
@@ -23,7 +28,19 @@ char* shell = NULL;
 
 magic_t cookie = NULL;
 
-char istextfile(entry* file) {
+struct w3m_config {
+    int pid;
+    FILE *fout;
+    FILE *fin;
+    int max_width_pixels;
+    int max_height_pixels;
+    int fontx;
+    int fonty;
+};
+
+struct w3m_config w3m_config;
+
+void set_entry_type(entry* file) {
     if (!cookie) {
         cookie = magic_open(MAGIC_MIME);
         magic_load(cookie, NULL);
@@ -32,7 +49,10 @@ char istextfile(entry* file) {
     const char* output = magic_file(cookie, file->name);
     errno = 0; //magic_file sets errno for invalid argument, but works for some reason
 
-    return !strstr(output, "charset=binary") || strstr(output, "inode/x-empty");
+    if (strstr(output, "image/"))
+        file->type = ENTRY_TYPE_IMAGE;
+    else if (!strstr(output, "charset=binary") || strstr(output, "inode/x-empty"))
+        file->type = ENTRY_TYPE_TEXT;
 }
 
 int run_(char** arguments, int wait) {
@@ -74,7 +94,10 @@ int run_open_file(entry* file,int wait) {
     char** arguments;
     int argumentindex = 0;
 
-    if (terminaleditor[0] && istextfile(file)) {
+    if (file->type == ENTRY_TYPE_FILE)
+        set_entry_type(file);
+
+    if (terminaleditor[0] && file->type == ENTRY_TYPE_TEXT) {
         if (!wait) {
             arguments = malloc(sizeof(*arguments)* (LEN(terminal) + LEN(terminaleditor) + 2));
 
@@ -173,14 +196,116 @@ void run_copy_to_clipboard(char** filenames, int count) {
     return;
 }
 
-void run_preview(entry* file, int previewsize) {
-    if (!istextfile(file)) {
-        return;
+void w3m_get_sizes(int maxx, int maxy) {
+    struct winsize screen_size;
+
+    ioctl(0, TIOCGWINSZ, &screen_size);
+    int max_width_pixels, max_height_pixels;
+    int fontx = screen_size.ws_xpixel / screen_size.ws_col;
+    int fonty = screen_size.ws_ypixel / screen_size.ws_row;
+
+    w3m_config.fontx = fontx;
+    w3m_config.fonty = fonty;
+    w3m_config.max_width_pixels = maxx * fontx;
+    w3m_config.max_height_pixels = maxy * fonty;
+}
+
+void w3m_start() {
+    int inpipe[2], outpipe[2];
+
+    pipe(inpipe);
+    pipe(outpipe);
+
+    int status;
+    int pid = fork();
+
+    if (pid == 0) {
+        close(outpipe[1]);
+        close(inpipe[0]);
+        dup2(outpipe[0], STDIN_FILENO);
+        dup2(inpipe[1], STDOUT_FILENO);
+        dup2(inpipe[1], STDERR_FILENO);
+        execl(W3MIMGDISPLAYPATH, "w3mimgdisplay", (char *) NULL);
+        exit(1);
     }
-    char *preview = malloc(sizeof(*preview) * previewsize + 1);
-    FILE* f = fopen(file->name, "r");
-    int bytesread = fread(preview, 1, previewsize, f);
-    preview[bytesread] = '\0';
-    fclose(f);
-    file->preview = preview;
+
+    close(outpipe[0]);
+    close(inpipe[1]);
+
+    FILE *fin, *fout;
+    fout = fdopen(outpipe[1], "w");
+    fin = fdopen(inpipe[0], "r");
+
+    w3m_config.pid = pid;
+    w3m_config.fout = fout;
+    w3m_config.fin = fin;
+}
+
+void w3m_kill() {
+    int status;
+    kill(w3m_config.pid, SIGKILL); //send SIGKILL signal to the child process
+    waitpid(w3m_config.pid, &status, 0);
+}
+
+void w3m_get_img_info(char *path, entry *file, int *width, int *height) {
+        int img_width, img_height;
+        fprintf(w3m_config.fout, "5;%s/%s\n", path, file->name);
+        fflush(w3m_config.fout);
+        fscanf(w3m_config.fin, "%d %d", &img_width, &img_height);
+
+        if (img_width > w3m_config.max_width_pixels) {
+            img_height = (img_height * w3m_config.max_width_pixels) / img_width;
+            img_width = w3m_config.max_width_pixels;
+        }
+        if (img_height > w3m_config.max_height_pixels) {
+            img_width = (img_width * w3m_config.max_height_pixels) / img_height;
+            img_height = w3m_config.max_height_pixels;
+        }
+
+        *width = img_width;
+        *height = img_height;
+}
+
+void run_preview(char *path, entry* file, int begx, int begy, int maxx, int maxy) {
+    if (file->type == ENTRY_TYPE_FILE)
+        set_entry_type(file);
+
+    if (file->type == ENTRY_TYPE_TEXT) {
+        char *preview = malloc(sizeof(*preview) * PREVIEWSIZE + 1);
+        FILE* f = fopen(file->name, "r");
+        int bytesread = fread(preview, 1, PREVIEWSIZE, f);
+        preview[bytesread] = '\0';
+        fclose(f);
+        file->preview = preview;
+    }
+    else if (file->type == ENTRY_TYPE_IMAGE) {
+        if (w3m_config.pid == 0) {
+            w3m_start();
+            w3m_get_sizes(maxx, maxy);
+        }
+
+        int startx, starty;
+        startx = (begx * w3m_config.fontx);
+        starty = (begy * w3m_config.fonty);
+
+        int img_width, img_height;
+        w3m_get_img_info(path, file, &img_width, &img_height);
+        fprintf(w3m_config.fout, "0;1;%d;%d;%d;%d;;;;;%s/%s\n4;\n3;\n", startx, starty, img_width, img_height, path, file->name);
+        fflush(w3m_config.fout);
+    }
+}
+
+void run_clear_image_preview(char *path, entry *file, int begx, int begy, int maxx, int maxy) {
+        int startx, starty;
+        startx = (begx * w3m_config.fontx);
+        starty = (begy * w3m_config.fonty);
+
+        int img_width, img_height;
+        w3m_get_img_info(path, file, &img_width, &img_height);
+        fprintf(w3m_config.fout, "6;%d;%d;%d;%d;\n3;\n", startx, starty, img_width + w3m_config.fontx, img_height + w3m_config.fonty);
+        fflush(w3m_config.fout);
+}
+
+void run_cleanup() {
+    w3m_kill();
 }
