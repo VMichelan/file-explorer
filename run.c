@@ -248,28 +248,28 @@ void w3m_kill() {
 }
 
 int w3m_get_img_info(char *path, entry *file, int *width, int *height) {
-        char buffer[1024];
-        int img_width, img_height;
-        fprintf(w3m_config.fout, "5;%s/%s\n", path, file->name);
-        fflush(w3m_config.fout);
-        fgets(buffer, 1024, w3m_config.fin);
-        if (sscanf(buffer, "%d %d", &img_width, &img_height) == 0) {
-            return 0;
-        }
+    char buffer[1024];
+    int img_width, img_height;
+    fprintf(w3m_config.fout, "5;%s/%s\n", path, file->name);
+    fflush(w3m_config.fout);
+    fgets(buffer, 1024, w3m_config.fin);
+    if (sscanf(buffer, "%d %d", &img_width, &img_height) == 0) {
+        return 0;
+    }
 
-        if (img_width > w3m_config.max_width_pixels) {
-            img_height = (img_height * w3m_config.max_width_pixels) / img_width;
-            img_width = w3m_config.max_width_pixels;
-        }
-        if (img_height > w3m_config.max_height_pixels) {
-            img_width = (img_width * w3m_config.max_height_pixels) / img_height;
-            img_height = w3m_config.max_height_pixels;
-        }
+    if (img_width > w3m_config.max_width_pixels) {
+        img_height = (img_height * w3m_config.max_width_pixels) / img_width;
+        img_width = w3m_config.max_width_pixels;
+    }
+    if (img_height > w3m_config.max_height_pixels) {
+        img_width = (img_width * w3m_config.max_height_pixels) / img_height;
+        img_height = w3m_config.max_height_pixels;
+    }
 
-        *width = img_width;
-        *height = img_height;
+    *width = img_width;
+    *height = img_height;
 
-        return 1;
+    return 1;
 }
 
 void run_preview(char *path, entry* file, int begx, int begy, int maxx, int maxy) {
@@ -303,17 +303,17 @@ void run_preview(char *path, entry* file, int begx, int begy, int maxx, int maxy
 }
 
 void run_clear_image_preview(char *path, entry *file, int begx, int begy, int maxx, int maxy) {
-        char buffer[1024];
-        fgets(buffer, 1024, w3m_config.fin);
-        int startx, starty;
-        startx = (begx * w3m_config.fontx);
-        starty = (begy * w3m_config.fonty);
+    char buffer[1024];
+    fgets(buffer, 1024, w3m_config.fin);
+    int startx, starty;
+    startx = (begx * w3m_config.fontx);
+    starty = (begy * w3m_config.fonty);
 
-        int img_width, img_height;
-        if (w3m_get_img_info(path, file, &img_width, &img_height)) {
-            fprintf(w3m_config.fout, "6;%d;%d;%d;%d;\n3;\n", startx, starty, img_width + w3m_config.fontx, img_height + w3m_config.fonty);
-            fflush(w3m_config.fout);
-        }
+    int img_width, img_height;
+    if (w3m_get_img_info(path, file, &img_width, &img_height)) {
+        fprintf(w3m_config.fout, "6;%d;%d;%d;%d;\n3;\n", startx, starty, img_width + w3m_config.fontx, img_height + w3m_config.fonty);
+        fflush(w3m_config.fout);
+    }
 }
 
 void run_cleanup() {
