@@ -242,6 +242,8 @@ void w3m_start() {
 }
 
 void w3m_kill() {
+    if (!w3m_config.pid)
+        return;
     int status;
     kill(w3m_config.pid, SIGTERM);
     waitpid(w3m_config.pid, &status, 0);
