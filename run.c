@@ -243,7 +243,7 @@ void w3m_start() {
 
 void w3m_kill() {
     int status;
-    kill(w3m_config.pid, SIGKILL); //send SIGKILL signal to the child process
+    kill(w3m_config.pid, SIGTERM);
     waitpid(w3m_config.pid, &status, 0);
 }
 
