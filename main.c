@@ -70,7 +70,7 @@ static struct keybinding keybindings[] = {
 int find(dir* directory) {
     int pos = 0, i, j;
     int ch;
-    char *str = malloc(sizeof(*str) * 1024);
+    char str[1024];
     char *tmp = NULL;
     str[0] = '\0';
 
