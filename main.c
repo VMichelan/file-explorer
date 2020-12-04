@@ -129,7 +129,7 @@ int find(dir* directory) {
         for (j = directory->index; j < directory->size && j < directory->index + WIN_YSIZE(yMax); j++) {
             tmp = strcasestr(directory->contents[j]->name, str);
             if (tmp) {
-                mvwchgat(w2, FILELINE(directory, j), tmp - directory->contents[j]->name + 1, pos, A_STANDOUT, 4, NULL);
+                mvwchgat(w2, FILELINE(directory, j), tmp - directory->contents[j]->name + 1, pos, A_STANDOUT, COLOR_SEARCH, NULL);
             }
         }
         wrefresh(w2);

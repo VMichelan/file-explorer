@@ -34,6 +34,7 @@ enum COLOR {
     COLOR_PATH = 2,
     COLOR_ERROR = 3,
     COLOR_LINK = 4,
+    COLOR_SEARCH = 5,
 };
 
 void ui_init() {
@@ -44,6 +45,7 @@ void ui_init() {
     init_pair(COLOR_PATH,       COLOR_GREEN,   -1          );
     init_pair(COLOR_ERROR,      -1,            COLOR_RED   );
     init_pair(COLOR_LINK,       COLOR_CYAN,    -1          );
+    init_pair(COLOR_SEARCH,     COLOR_YELLOW,  -1          );
 
     refresh();
     ui_init_win();
