@@ -11,6 +11,11 @@
 #include "dir.h"
 
 #define CTRL(x) (x - 64)
+
+#define TAB_KEY 9
+#define ENTER_KEY 10
+#define ESC_KEY 27
+
 enum ACTION {
     NONE,
     UP,
@@ -84,7 +89,7 @@ int find(dir* directory) {
                     str[--pos] = '\0';
                 }
                 break;
-            case 9:
+            case TAB_KEY:
             case CTRL('N'):
                 for (i = 0; i < directory->size; i++) {
                     j = (i + directory->cursor + 1) % directory->size;
@@ -106,7 +111,7 @@ int find(dir* directory) {
                     }
                 }
                 break;
-            case 10:
+            case ENTER_KEY:
                 for (i = 0; i < directory->size; i++) {
                     j = (i + directory->cursor) % directory->size;
                     if (strcasestr(directory->contents[j]->name, str)) {
@@ -115,7 +120,7 @@ int find(dir* directory) {
                     }
                 }
                 return 1;
-            case 27:
+            case ESC_KEY:
                 return 0;
             default:
                 if (pos < 1024) {
