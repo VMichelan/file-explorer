@@ -40,10 +40,10 @@ void ui_init() {
     start_color();
     use_default_colors();
 
-    init_pair(1, COLOR_BLUE,    -1          ); //directory
-    init_pair(2, COLOR_GREEN,   -1          ); //path
-    init_pair(3, -1,            COLOR_RED   ); //error
-    init_pair(4, COLOR_CYAN,    -1         ); //link
+    init_pair(COLOR_DIRECTORY,  COLOR_BLUE,    -1          );
+    init_pair(COLOR_PATH,       COLOR_GREEN,   -1          );
+    init_pair(COLOR_ERROR,      -1,            COLOR_RED   );
+    init_pair(COLOR_LINK,       COLOR_CYAN,    -1          );
 
     refresh();
     ui_init_win();
