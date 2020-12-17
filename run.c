@@ -46,10 +46,12 @@ void set_entry_type(entry* file) {
         magic_load(cookie, NULL);
     }
 
-    const char* output = magic_file(cookie, file->name);
+    const char* output = magic_file(cookie, file->name); // TODO: this doesn't work with links
     errno = 0; //magic_file sets errno for invalid argument, but works for some reason
 
-    if (strstr(output, "image/"))
+    if (!output)
+        return;
+    else if (strstr(output, "image/"))
         file->type = ENTRY_TYPE_IMAGE;
     else if (!strstr(output, "charset=binary") || strstr(output, "inode/x-empty"))
         file->type = ENTRY_TYPE_TEXT;
