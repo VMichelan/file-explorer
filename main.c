@@ -199,8 +199,8 @@ int main(int argc, char* argv[])
     int begx, begy;
     int xmaxw3, ymaxw3;
 
-    initscr();
     setlocale(LC_ALL, "");
+    initscr();
     raw();
     noecho();
     curs_set(0);
