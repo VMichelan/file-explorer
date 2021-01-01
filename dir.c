@@ -324,8 +324,16 @@ dir* dir_reload(dir* directory) {
     }
 
     newdirectory->parentdir = directory->parentdir;
-    newdirectory->cursor = directory->cursor;
-    newdirectory->index = directory->index;
+
+    if (directory->cursor < newdirectory->size)
+        newdirectory->cursor = directory->cursor;
+    else
+        newdirectory->cursor = newdirectory->size - 1;
+
+    if (directory->index < newdirectory->size)
+        newdirectory->index = directory->index;
+    else
+        newdirectory->index = newdirectory->size - 1;
 
     dir_free(directory);
     return newdirectory;
