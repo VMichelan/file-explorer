@@ -85,7 +85,7 @@ enum COLOR get_color(struct entry *e) {
 
 void ui_highlight_line(WINDOW* w, dir* directory, int line, attr_t attr) {
     short color;
-    if (directory->contents[directory->index + line]->islink) {
+    if (directory->entry_array[directory->index + line]->islink) {
         color = 4;
     }
     else if (IS_DIR(directory, line + directory->index)) {
@@ -112,17 +112,17 @@ void ui_print_dir(WINDOW* w, dir* directory) {
         i++;
     }
     while (i + directory->index < directory->size && i < yMax) {
-        enum COLOR c = get_color(directory->contents[i + directory->index]); 
+        enum COLOR c = get_color(directory->entry_array[i + directory->index]); 
 
         wattron(w, COLOR_PAIR(c));
 
-        if (directory->contents[i + directory->index]->marked) {
+        if (directory->entry_array[i + directory->index]->marked) {
             mvwaddch(w, i, 0, '>');
         }
         else {
             mvwaddch(w, i, 0, ' ');
         }
-        waddnstr(w, directory->contents[i + directory->index]->name, xMax-2);
+        waddnstr(w, directory->entry_array[i + directory->index]->name, xMax-2);
 
         wclrtoeol(w);
 
@@ -131,7 +131,7 @@ void ui_print_dir(WINDOW* w, dir* directory) {
     }
     wclrtobot(w);
     if (directory->size > 0) {
-        mvwchgat(w, CURSORLINE(directory), 0, -1, A_STANDOUT, get_color(directory->contents[directory->cursor]), NULL);
+        mvwchgat(w, CURSORLINE(directory), 0, -1, A_STANDOUT, get_color(directory->entry_array[directory->cursor]), NULL);
     }
     wrefresh(w);
 }

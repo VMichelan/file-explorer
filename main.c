@@ -95,7 +95,7 @@ int find(dir* directory) {
             case CTRL('N'):
                 for (i = 0; i < directory->size; i++) {
                     j = (i + directory->cursor + 1) % directory->size;
-                    if (strcasestr(directory->contents[j]->name, str)) {
+                    if (strcasestr(directory->entry_array[j]->name, str)) {
                         dir_move_cursor(directory, WIN_YMAX(yMax), j - directory->cursor);
                         break;
                     }
@@ -107,7 +107,7 @@ int find(dir* directory) {
                     if (j < 0) {
                         j += directory->size;
                     }
-                    if (strcasestr(directory->contents[j]->name, str)) {
+                    if (strcasestr(directory->entry_array[j]->name, str)) {
                         dir_move_cursor(directory, WIN_YMAX(yMax), j - directory->cursor);
                         break;
                     }
@@ -116,7 +116,7 @@ int find(dir* directory) {
             case ENTER_KEY:
                 for (i = 0; i < directory->size; i++) {
                     j = (i + directory->cursor) % directory->size;
-                    if (strcasestr(directory->contents[j]->name, str)) {
+                    if (strcasestr(directory->entry_array[j]->name, str)) {
                         directory->cursor = j;
                         break;
                     }
@@ -134,9 +134,9 @@ int find(dir* directory) {
         wclrtoeol(cmdw);
         ui_print_dir(w2, directory);
         for (j = directory->index; j < directory->size && j < directory->index + WIN_YSIZE(yMax); j++) {
-            tmp = strcasestr(directory->contents[j]->name, str);
+            tmp = strcasestr(directory->entry_array[j]->name, str);
             if (tmp) {
-                mvwchgat(w2, FILELINE(directory, j), tmp - directory->contents[j]->name + 1, pos, A_STANDOUT, COLOR_SEARCH, NULL);
+                mvwchgat(w2, FILELINE(directory, j), tmp - directory->entry_array[j]->name + 1, pos, A_STANDOUT, COLOR_SEARCH, NULL);
             }
         }
         wrefresh(w2);
@@ -162,8 +162,8 @@ void display_dir(dir* directory, char* preview) {
     }
 
     if (!IS_DIR(directory, directory->cursor)) {
-        if (directory->contents[directory->cursor]->preview) {
-            mvwaddstr(w3, 0, 0, directory->contents[directory->cursor]->preview);
+        if (directory->entry_array[directory->cursor]->preview) {
+            mvwaddstr(w3, 0, 0, directory->entry_array[directory->cursor]->preview);
             wclrtobot(w3);
             wrefresh(w3);
             preview[0] = '\0';
@@ -174,9 +174,9 @@ void display_dir(dir* directory, char* preview) {
         }
     }
     else {
-        if (directory->dir_ptr[directory->cursor] != NULL) {
+        if (directory->dir_array[directory->cursor] != NULL) {
             ui_print_dir(w2, directory);
-            ui_print_dir(w3, directory->dir_ptr[directory->cursor]);
+            ui_print_dir(w3, directory->dir_array[directory->cursor]);
         }
         else {
             ui_print_dir(w2w3, directory);
@@ -261,13 +261,13 @@ int main(int argc, char* argv[])
 
             case RIGHT:
                 if (IS_DIR(directory, directory->cursor)) {
-                    if (!directory->dir_ptr[directory->cursor]) {
+                    if (!directory->dir_array[directory->cursor]) {
                         dir_load_dir_at_cursor(directory);
                     }
-                    if (directory->dir_ptr[directory->cursor]) {
-                        chdir(directory->dir_ptr[directory->cursor]->path);
-                        directory = directory->dir_ptr[directory->cursor];
-                        if (directory->size > 0 && directory->contents[directory->cursor]->type == ENTRY_TYPE_DIRECTORY) {
+                    if (directory->dir_array[directory->cursor]) {
+                        chdir(directory->dir_array[directory->cursor]->path);
+                        directory = directory->dir_array[directory->cursor];
+                        if (directory->size > 0 && directory->entry_array[directory->cursor]->type == ENTRY_TYPE_DIRECTORY) {
                             dir_load_dir_at_cursor(directory);
                         }
                         ui_print_path(directory->path);
@@ -276,13 +276,13 @@ int main(int argc, char* argv[])
                 else {
                     sigprocmask(SIG_BLOCK, &sigs, 0);
                     endwin();
-                    run_open_file(directory->contents[directory->cursor], 1);
+                    run_open_file(directory->entry_array[directory->cursor], 1);
                     sigprocmask(SIG_UNBLOCK, &sigs, 0);
                 }
                 break;
 
             case S_RIGHT:
-                run_open_file(directory->contents[directory->cursor], 0);
+                run_open_file(directory->entry_array[directory->cursor], 0);
                 break;
 
             case FIND:
@@ -301,7 +301,7 @@ int main(int argc, char* argv[])
 
             case EXTRACT:
                 endwin();
-                run_extract_file(directory->contents[directory->cursor]);
+                run_extract_file(directory->entry_array[directory->cursor]);
                 directory = dir_reload(directory);
                 break;
 
@@ -318,14 +318,14 @@ int main(int argc, char* argv[])
                     }
                 }
             case MARK:
-                directory->markedcount -= directory->contents[directory->cursor]->marked;
-                directory->contents[directory->cursor]->marked = !directory->contents[directory->cursor]->marked;
-                directory->markedcount += directory->contents[directory->cursor]->marked;
+                directory->markedcount -= directory->entry_array[directory->cursor]->marked;
+                directory->entry_array[directory->cursor]->marked = !directory->entry_array[directory->cursor]->marked;
+                directory->markedcount += directory->entry_array[directory->cursor]->marked;
                 break;
 
             case UNMARK:
                 for (int i = 0; i < directory->size; i++) {
-                    directory->contents[i]->marked = 0;
+                    directory->entry_array[i]->marked = 0;
                 }
                 directory->markedcount = 0;
                 break;
@@ -336,15 +336,15 @@ int main(int argc, char* argv[])
                         char *filenames[directory->markedcount];
                         int j = 0;
                         for (int i = 0; i < directory->size && j < directory->markedcount; i++) {
-                            if (directory->contents[i]->marked) {
-                                filenames[j] = directory->contents[i]->name;
+                            if (directory->entry_array[i]->marked) {
+                                filenames[j] = directory->entry_array[i]->name;
                                 j++;
                             }
                         }
                         run_copy_to_clipboard(filenames, directory->markedcount);
                     }
                     else {
-                        run_copy_to_clipboard(&directory->contents[directory->cursor]->name, 1);
+                        run_copy_to_clipboard(&directory->entry_array[directory->cursor]->name, 1);
                     }
                 }
                 break;
@@ -357,14 +357,14 @@ int main(int argc, char* argv[])
                 getbegyx(w3, begy, begx);
                 begx++;
                 getmaxyx(w3, ymaxw3, xmaxw3);
-                run_preview(directory->path, directory->contents[directory->cursor], begx, begy, xmaxw3, ymaxw3);
-                if (directory->contents[directory->cursor]->type == ENTRY_TYPE_IMAGE) {
+                run_preview(directory->path, directory->entry_array[directory->cursor], begx, begy, xmaxw3, ymaxw3);
+                if (directory->entry_array[directory->cursor]->type == ENTRY_TYPE_IMAGE) {
                     wclear(w3);
                     wclear(wbetweenw2w3);
                     wrefresh(w3);
                     wrefresh(wbetweenw2w3);
                     ch = getch();
-                    run_clear_image_preview(directory->path, directory->contents[directory->cursor], begx, begy, xmaxw3, ymaxw3);
+                    run_clear_image_preview(directory->path, directory->entry_array[directory->cursor], begx, begy, xmaxw3, ymaxw3);
                     ungetch(ch);
                 }
                 break;

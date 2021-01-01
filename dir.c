@@ -56,14 +56,14 @@ void dir_free(dir *dir_info){
         return;
     }
     for (i = 0; i < dir_info->size; i++) {
-        free(dir_info->contents[i]->name);
-        free(dir_info->contents[i]->preview);
-        free(dir_info->contents[i]);
+        free(dir_info->entry_array[i]->name);
+        free(dir_info->entry_array[i]->preview);
+        free(dir_info->entry_array[i]);
         if (i < dir_info->dircount) {
-            dir_free(dir_info->dir_ptr[i]);
+            dir_free(dir_info->dir_array[i]);
         }
     }
-    free(dir_info->contents);
+    free(dir_info->entry_array);
     free(dir_info->path);
     free(dir_info);
 }
@@ -79,12 +79,12 @@ void sort_dir(dir* directory){
     int dirindex = 0, fileindex = 0;
 
     for (int entryindex = 0; entryindex < directory->size; entryindex++) {
-        if (directory->contents[entryindex]->type == ENTRY_TYPE_DIRECTORY) {
-            dir_entries[dirindex] = directory->contents[entryindex];
+        if (directory->entry_array[entryindex]->type == ENTRY_TYPE_DIRECTORY) {
+            dir_entries[dirindex] = directory->entry_array[entryindex];
             dirindex++;
         }
         else {
-            file_entries[fileindex] = directory->contents[entryindex];
+            file_entries[fileindex] = directory->entry_array[entryindex];
             fileindex++;
         }
     }
@@ -92,8 +92,8 @@ void sort_dir(dir* directory){
     qsort(dir_entries, directory->dircount, sizeof(entry *), entry_cmp);
     qsort(file_entries, directory->size - directory->dircount, sizeof(entry *), entry_cmp);
 
-    memcpy(directory->contents, dir_entries, directory->dircount * sizeof(entry *));
-    memcpy( directory->contents + directory->dircount,
+    memcpy(directory->entry_array, dir_entries, directory->dircount * sizeof(entry *));
+    memcpy( directory->entry_array + directory->dircount,
             file_entries,
             (directory->size - directory->dircount) * sizeof(entry *));
 
@@ -109,7 +109,7 @@ dir* dir_create(const char* directorypath) {
     int dircount = 0;
 
     dir* dir_info = calloc_or_die(1, sizeof(dir));
-    dir_info->contents = calloc_or_die(1, sizeof(entry*));
+    dir_info->entry_array = calloc_or_die(1, sizeof(entry*));
 
     DIR* directory = opendir(directorypath);
 
@@ -128,41 +128,41 @@ dir* dir_create(const char* directorypath) {
                 strcmp(directory_entry->d_name, ".")    &&
                 (show_hidden || directory_entry->d_name[0] != '.')
             ) {
-            dir_info->contents = realloc_or_die(dir_info->contents, sizeof(entry*) * i + 1);
-            dir_info->contents[i] = calloc_or_die(1, sizeof(entry));
-            dir_info->contents[i]->name = malloc_or_die(FILENAME_SIZE);
-            strcpy(dir_info->contents[i]->name, directory_entry->d_name);
-            dir_info->contents[i]->marked = 0;
-            dir_info->contents[i]->islink = 0;
-            dir_info->contents[i]->preview = NULL;
+            dir_info->entry_array = realloc_or_die(dir_info->entry_array, sizeof(entry*) * i + 1);
+            dir_info->entry_array[i] = calloc_or_die(1, sizeof(entry));
+            dir_info->entry_array[i]->name = malloc_or_die(FILENAME_SIZE);
+            strcpy(dir_info->entry_array[i]->name, directory_entry->d_name);
+            dir_info->entry_array[i]->marked = 0;
+            dir_info->entry_array[i]->islink = 0;
+            dir_info->entry_array[i]->preview = NULL;
             switch (directory_entry->d_type) {
                 case DT_REG:
-                    dir_info->contents[i]->type = ENTRY_TYPE_FILE;
+                    dir_info->entry_array[i]->type = ENTRY_TYPE_FILE;
                     break;
                 case DT_DIR:
-                    dir_info->contents[i]->type = ENTRY_TYPE_DIRECTORY;
+                    dir_info->entry_array[i]->type = ENTRY_TYPE_DIRECTORY;
                     dircount++;
                     break;
                 case DT_LNK:
-                    dir_info->contents[i]->islink = 1;
+                    dir_info->entry_array[i]->islink = 1;
                 case DT_UNKNOWN:
                     if (stat(directory_entry->d_name, &sb) && errno == ENOENT || errno == ELOOP) {
                         if (lstat(directory_entry->d_name, &sb)) {
-                            dir_info->contents[i]->type = ENTRY_TYPE_UNKNOWN;
+                            dir_info->entry_array[i]->type = ENTRY_TYPE_UNKNOWN;
                             break;
                         }
                     }
 
                     if (S_ISDIR(sb.st_mode)) {
-                        dir_info->contents[i]->type = ENTRY_TYPE_DIRECTORY;
+                        dir_info->entry_array[i]->type = ENTRY_TYPE_DIRECTORY;
                         dircount++;
                     }
                     else {
-                        dir_info->contents[i]->type = ENTRY_TYPE_FILE;
+                        dir_info->entry_array[i]->type = ENTRY_TYPE_FILE;
                     }
                     break;
                 default:
-                    dir_info->contents[i]->type = ENTRY_TYPE_UNKNOWN;
+                    dir_info->entry_array[i]->type = ENTRY_TYPE_UNKNOWN;
                     break;
             }
 
@@ -179,7 +179,7 @@ dir* dir_create(const char* directorypath) {
     free(cwd);
 
     dir_info->dircount = dircount;
-    dir_info->dir_ptr = calloc_or_die(sizeof(*(dir_info->dir_ptr)), dircount);
+    dir_info->dir_array = calloc_or_die(sizeof(*(dir_info->dir_array)), dircount);
     dir_info->size = i;
     dir_info->markedcount = 0;
     dir_info->cursor = 0;
@@ -201,8 +201,8 @@ void dir_inser(dir* directory) {
     } while (next);
 
     for (int i = 0; i < directory->parentdir->size; i++) {
-        if (strcmp(dirname, directory->parentdir->contents[i]->name) == 0) {
-            directory->parentdir->dir_ptr[i] = directory;
+        if (strcmp(dirname, directory->parentdir->entry_array[i]->name) == 0) {
+            directory->parentdir->dir_array[i] = directory;
             directory->parentdir->cursor = i;
             break;
         }
@@ -231,11 +231,11 @@ dir* dir_up(dir* directory) {
 }
 
 void dir_load_dir_at_cursor(dir *directory) {
-    entry *entry_at_cursor = directory->contents[directory->cursor];
-    if (entry_at_cursor->type == ENTRY_TYPE_DIRECTORY && !directory->dir_ptr[directory->cursor]) {
-        directory->dir_ptr[directory->cursor] = dir_create(entry_at_cursor->name);
-        if (directory->dir_ptr[directory->cursor])
-            directory->dir_ptr[directory->cursor]->parentdir = directory;
+    entry *entry_at_cursor = directory->entry_array[directory->cursor];
+    if (entry_at_cursor->type == ENTRY_TYPE_DIRECTORY && !directory->dir_array[directory->cursor]) {
+        directory->dir_array[directory->cursor] = dir_create(entry_at_cursor->name);
+        if (directory->dir_array[directory->cursor])
+            directory->dir_array[directory->cursor]->parentdir = directory;
     }
 }
 
@@ -296,16 +296,16 @@ dir* dir_reload(dir* directory) {
     dir* newdirectory = dir_create(directory->path);
 
     for (int i = 0; i < directory->dircount; i++) {
-        if (directory->dir_ptr[i]) {
-            directory->dir_ptr[i]->parentdir = newdirectory;
+        if (directory->dir_array[i]) {
+            directory->dir_array[i]->parentdir = newdirectory;
         }
     }
 
     for (int i = 0; i < newdirectory->dircount; i++) {
         for (int j = 0; j < directory->dircount; j++) {
-            if (!strcmp(newdirectory->contents[i]->name, directory->contents[j]->name)) {
-                newdirectory->dir_ptr[i] = directory->dir_ptr[j];
-                directory->dir_ptr[j] = NULL;
+            if (!strcmp(newdirectory->entry_array[i]->name, directory->entry_array[j]->name)) {
+                newdirectory->dir_array[i] = directory->dir_array[j];
+                directory->dir_array[j] = NULL;
                 break;
             }
         }
@@ -313,8 +313,8 @@ dir* dir_reload(dir* directory) {
 
     if (directory->parentdir) {
         for (int i = 0; i < directory->parentdir->dircount; i++) {
-            if (directory->parentdir->dir_ptr[i] == directory) {
-                directory->parentdir->dir_ptr[i]= newdirectory;
+            if (directory->parentdir->dir_array[i] == directory) {
+                directory->parentdir->dir_array[i]= newdirectory;
                 break;
             }
         }
