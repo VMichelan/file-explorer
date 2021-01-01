@@ -83,20 +83,6 @@ enum COLOR get_color(struct entry *e) {
     return COLOR_DEFAULT;
 }
 
-void ui_highlight_line(WINDOW* w, dir* directory, int line, attr_t attr) {
-    short color;
-    if (directory->entry_array[directory->index + line]->islink) {
-        color = 4;
-    }
-    else if (IS_DIR(directory, line + directory->index)) {
-        color = 1;
-    }
-    else {
-        color = 0;
-    }
-    mvwchgat(w, line, 0, -1, attr, color, NULL);
-}
-
 void ui_print_dir(WINDOW* w, dir* directory) {
     if (!directory) {
         return;

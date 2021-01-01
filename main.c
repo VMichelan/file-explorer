@@ -144,7 +144,7 @@ int find(dir* directory) {
     }
 }
 
-void display_dir(dir* directory, char* preview) {
+void display_dir(dir* directory) {
     werase(wbetweenw2w3);
     wrefresh(wbetweenw2w3);
 
@@ -166,7 +166,6 @@ void display_dir(dir* directory, char* preview) {
             mvwaddstr(w3, 0, 0, directory->entry_array[directory->cursor]->preview);
             wclrtobot(w3);
             wrefresh(w3);
-            preview[0] = '\0';
             ui_print_dir(w2, directory);
         }
         else {
@@ -218,11 +217,8 @@ int main(int argc, char* argv[])
 
     enum ACTION action;
 
-    char* preview = malloc(6667);
-    preview[0] = '\0';
-
     while (true) {
-        display_dir(directory, preview);
+        display_dir(directory);
         ui_print_cmd(directory, NULL);
         ui_print_path(directory->path);
 

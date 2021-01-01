@@ -4,7 +4,6 @@
 #include "entry.h"
 
 #define FILENAME_SIZE sizeof(char)*256
-#define TYPE_SIZE sizeof(unsigned char)
 #define PATH_SIZE sizeof(char)*4096
 
 #define IS_DIR(directory, i) (directory->entry_array[i]->type == ENTRY_TYPE_DIRECTORY)
