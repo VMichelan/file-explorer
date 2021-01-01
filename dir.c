@@ -123,48 +123,51 @@ dir* dir_create(const char* directorypath) {
     getcwd(cwd, PATH_MAX);
     chdir(directorypath);
 
+    struct entry *e;
+
     while (directory_entry = readdir(directory)) {
         if (    strcmp(directory_entry->d_name, "..")   &&
                 strcmp(directory_entry->d_name, ".")    &&
                 (show_hidden || directory_entry->d_name[0] != '.')
             ) {
-            dir_info->entry_array = realloc_or_die(dir_info->entry_array, sizeof(entry*) * i + 1);
-            dir_info->entry_array[i] = calloc_or_die(1, sizeof(entry));
-            dir_info->entry_array[i]->name = malloc_or_die(FILENAME_SIZE);
-            strcpy(dir_info->entry_array[i]->name, directory_entry->d_name);
-            dir_info->entry_array[i]->marked = 0;
-            dir_info->entry_array[i]->islink = 0;
-            dir_info->entry_array[i]->preview = NULL;
+            e = calloc_or_die(1, sizeof(entry));
+            e->name = malloc_or_die(FILENAME_SIZE);
+            strcpy(e->name, directory_entry->d_name);
+            e->marked = 0;
+            e->islink = 0;
+            e->preview = NULL;
             switch (directory_entry->d_type) {
                 case DT_REG:
-                    dir_info->entry_array[i]->type = ENTRY_TYPE_FILE;
+                    e->type = ENTRY_TYPE_FILE;
                     break;
                 case DT_DIR:
-                    dir_info->entry_array[i]->type = ENTRY_TYPE_DIRECTORY;
+                    e->type = ENTRY_TYPE_DIRECTORY;
                     dircount++;
                     break;
                 case DT_LNK:
-                    dir_info->entry_array[i]->islink = 1;
+                    e->islink = 1;
                 case DT_UNKNOWN:
                     if (stat(directory_entry->d_name, &sb) && errno == ENOENT || errno == ELOOP) {
                         if (lstat(directory_entry->d_name, &sb)) {
-                            dir_info->entry_array[i]->type = ENTRY_TYPE_UNKNOWN;
+                            e->type = ENTRY_TYPE_UNKNOWN;
                             break;
                         }
                     }
 
                     if (S_ISDIR(sb.st_mode)) {
-                        dir_info->entry_array[i]->type = ENTRY_TYPE_DIRECTORY;
+                        e->type = ENTRY_TYPE_DIRECTORY;
                         dircount++;
                     }
                     else {
-                        dir_info->entry_array[i]->type = ENTRY_TYPE_FILE;
+                        e->type = ENTRY_TYPE_FILE;
                     }
                     break;
                 default:
-                    dir_info->entry_array[i]->type = ENTRY_TYPE_UNKNOWN;
+                    e->type = ENTRY_TYPE_UNKNOWN;
                     break;
             }
+            dir_info->entry_array = realloc_or_die(dir_info->entry_array, sizeof(entry*) * i + 1);
+            dir_info->entry_array[i] = e;
 
             i++;
         }
