@@ -38,6 +38,7 @@ enum ACTION {
     YANK,
     S_YANK,
     PREVIEW,
+    TOGGLE_HIDDEN,
     QUIT
 };
 
@@ -69,6 +70,7 @@ static struct keybinding keybindings[] = {
     {'y'        , YANK          },
     {'Y'        , S_YANK        },
     {'p'        , PREVIEW       },
+    {'.'        , TOGGLE_HIDDEN },
     {'q'        , QUIT          }
 };
 
@@ -207,7 +209,7 @@ int main(int argc, char* argv[])
     keypad(stdscr,TRUE);
     set_escdelay(50);
     ui_init();
-    dir* directory = dir_init();
+    dir* directory = dir_init(NULL);
     dir_load_dir_at_cursor(directory);
 
     sigset_t sigs;
@@ -376,6 +378,10 @@ int main(int argc, char* argv[])
                 break;
 
             case NONE:
+                break;
+
+            case TOGGLE_HIDDEN:
+                directory = dir_toggle_hidden(directory);
                 break;
 
             case QUIT:

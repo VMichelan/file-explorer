@@ -31,8 +31,8 @@ dir* dir_cd_cursor(dir*);
 void dir_move_cursor(dir* , int, int);
 void dir_insert(dir*);
 dir* dir_up(dir*);
-dir* dir_init();
+dir* dir_init(char*);
 dir* dir_reload(dir*);
-
+dir* dir_toggle_hidden(dir*);
 
 #endif

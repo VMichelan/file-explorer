@@ -10,6 +10,8 @@
 
 #include "dir.h"
 
+int show_hidden = 0;
+
 void* malloc_or_die(int size) {
     void* returnPrt = malloc(size);
     if (!returnPrt) {
@@ -122,7 +124,10 @@ dir* dir_create(const char* directorypath) {
     chdir(directorypath);
 
     while (directory_entry = readdir(directory)) {
-        if (directory_entry->d_name[0] != '.' && strcmp(directory_entry->d_name, "..")) {
+        if (    strcmp(directory_entry->d_name, "..")   &&
+                strcmp(directory_entry->d_name, ".")    &&
+                (show_hidden || directory_entry->d_name[0] != '.')
+            ) {
             dir_info->contents = realloc_or_die(dir_info->contents, sizeof(entry*) * i + 1);
             dir_info->contents[i] = calloc_or_die(1, sizeof(entry));
             dir_info->contents[i]->name = malloc_or_die(FILENAME_SIZE);
@@ -260,19 +265,24 @@ void dir_move_cursor(dir* directory,int yMax,int number) {
     }
 }
 
-dir* dir_init() {
-    char* pwd = getenv("PWD");
-    int pwdlen = strlen(pwd);
-    char* path = malloc_or_die(sizeof(*path) * pwdlen + 2);
-    strncpy(path, pwd, pwdlen);
+dir* dir_init(char *arg_path) {
+    char path[PATH_MAX];
+    if (arg_path) {
+        strncpy(path, arg_path, PATH_MAX);
+    }
+    else {
+        char* pwd = getenv("PWD");
+        int pwdlen = strlen(pwd);
+        strncpy(path, pwd, pwdlen);
+    }
 
     if (!IS_PATH_ROOT(path)) {
-        path[pwdlen] = '/';
-        path[pwdlen + 1] = '\0';
+        int path_len = strlen(path);
+        path[path_len] = '/';
+        path[path_len + 1] = '\0';
     }
 
     dir* directory = dir_create(path);
-    free(path);
 
     if (!IS_PATH_ROOT(path)) {
         directory->parentdir = dir_create("..");
@@ -316,4 +326,18 @@ dir* dir_reload(dir* directory) {
 
     dir_free(directory);
     return newdirectory;
+}
+
+dir* dir_toggle_hidden(dir *directory) {
+    char path[PATH_MAX];
+    char *ptr;
+    strncpy(path, directory->path, PATH_MAX);
+    dir_free(directory);
+    ptr = strstr(path, "/.");
+    if (ptr) {
+        *(ptr + 1) = '\0';
+    }
+    show_hidden = !show_hidden;
+    chdir(path);
+    return dir_init(path);
 }
