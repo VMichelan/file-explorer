@@ -281,7 +281,7 @@ void run_preview(char *path, entry* file, int begx, int begy, int maxx, int maxy
     if (file->type == ENTRY_TYPE_TEXT) {
         char *preview = malloc(sizeof(*preview) * (maxx * maxy) + 1);
         FILE* f = fopen(file->name, "r");
-        int bytesread = fread(preview, 1, maxx * maxy, f);
+        int bytesread = fread(preview, sizeof(*preview), maxx * maxy, f);
         preview[bytesread] = '\0';
         fclose(f);
 
