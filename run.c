@@ -14,8 +14,6 @@
 
 #define LEN(x) sizeof(x)/sizeof(*x)
 
-#define PREVIEWSIZE 1024
-
 #define W3MIMGDISPLAYPATH "/usr/lib/w3m/w3mimgdisplay"
 
 char* terminal[] = {"st", "-e"};
@@ -281,11 +279,12 @@ void run_preview(char *path, entry* file, int begx, int begy, int maxx, int maxy
         set_entry_type(file);
 
     if (file->type == ENTRY_TYPE_TEXT) {
-        char *preview = malloc(sizeof(*preview) * PREVIEWSIZE + 1);
+        char *preview = malloc(sizeof(*preview) * (maxx * maxy) + 1);
         FILE* f = fopen(file->name, "r");
-        int bytesread = fread(preview, 1, PREVIEWSIZE, f);
+        int bytesread = fread(preview, 1, maxx * maxy, f);
         preview[bytesread] = '\0';
         fclose(f);
+
         file->preview = preview;
     }
     else if (file->type == ENTRY_TYPE_IMAGE) {
