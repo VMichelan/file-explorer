@@ -275,8 +275,7 @@ dir* dir_init(char *arg_path) {
     }
     else {
         char* pwd = getenv("PWD");
-        int pwdlen = strlen(pwd);
-        strncpy(path, pwd, pwdlen);
+        strncpy(path, pwd, PATH_MAX);
     }
 
     if (!IS_PATH_ROOT(path)) {
