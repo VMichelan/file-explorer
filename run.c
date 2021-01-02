@@ -285,6 +285,18 @@ void run_preview(char *path, entry* file, int begx, int begy, int maxx, int maxy
         preview[bytesread] = '\0';
         fclose(f);
 
+        char *in_ptr, *out_ptr;
+        in_ptr = out_ptr = preview;
+
+        while (*in_ptr != '\0') {
+            if (*in_ptr == '\r' && *(in_ptr + 1) == '\n') {
+                in_ptr++;
+            }
+            *out_ptr = *in_ptr;
+            in_ptr++;
+            out_ptr++;
+        }
+
         file->preview = preview;
     }
     else if (file->type == ENTRY_TYPE_IMAGE) {
