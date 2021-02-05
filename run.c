@@ -326,8 +326,9 @@ void run_clear_image_preview(char *path, entry *file, int begx, int begy, int ma
 
     int img_width, img_height;
     if (w3m_get_img_info(path, file, &img_width, &img_height)) {
-        fprintf(w3m_config.fout, "6;%d;%d;%d;%d;\n3;\n", startx, starty, img_width + w3m_config.fontx, img_height + w3m_config.fonty);
+        fprintf(w3m_config.fout, "6;%d;%d;%d;%d;\n4;\n3;\n", startx, starty, img_width + w3m_config.fontx, img_height + w3m_config.fonty);
         fflush(w3m_config.fout);
+        fgets(buffer, 1024, w3m_config.fin);
     }
 }
 
