@@ -359,9 +359,10 @@ int main(int argc, char* argv[])
                 wrefresh(wbetweenw2w3);
                 usleep(10000);
                 run_preview(directory->path, directory->entry_array[directory->cursor], begx, begy, xmaxw3, ymaxw3);
-                if (directory->entry_array[directory->cursor]->type == ENTRY_TYPE_IMAGE) {
+                if (directory->entry_array[directory->cursor]->type == ENTRY_TYPE_IMAGE ||
+                    directory->entry_array[directory->cursor]->type == ENTRY_TYPE_VIDEO) {
                     ch = getch();
-                    run_clear_image_preview(directory->path, directory->entry_array[directory->cursor], begx, begy, xmaxw3, ymaxw3);
+                    run_clear_image_preview(directory->entry_array[directory->cursor], begx, begy);
                     ungetch(ch);
                 }
                 break;

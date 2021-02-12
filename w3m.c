@@ -8,6 +8,8 @@ struct w3m_config {
     int max_height_pixels;
     int fontx;
     int fonty;
+    int current_img_width;
+    int current_img_height;
 };
 
 struct w3m_config w3m_config;
@@ -105,19 +107,18 @@ void w3m_preview_image(char *path, char* file_name, int begx, int begy, int maxx
         fprintf(w3m_config.fout, "0;1;%d;%d;%d;%d;;;;;%s/%s\n4;\n3;\n", startx, starty, img_width, img_height, path, file_name);
         fflush(w3m_config.fout);
     }
+    w3m_config.current_img_width = img_width;
+    w3m_config.current_img_height = img_height;
 }
 
-void w3m_clear(char *path, char *file_name, int begx, int begy, int maxx, int maxy) {
+void w3m_clear(int begx, int begy) {
     char buffer[1024];
     fgets(buffer, 1024, w3m_config.fin);
     int startx, starty;
     startx = (begx * w3m_config.fontx);
     starty = (begy * w3m_config.fonty);
 
-    int img_width, img_height;
-    if (w3m_get_img_info(path, file_name, &img_width, &img_height)) {
-        fprintf(w3m_config.fout, "6;%d;%d;%d;%d;\n4;\n3;\n", startx, starty, img_width + w3m_config.fontx, img_height + w3m_config.fonty);
-        fflush(w3m_config.fout);
-        fgets(buffer, 1024, w3m_config.fin);
-    }
+    fprintf(w3m_config.fout, "6;%d;%d;%d;%d;\n4;\n3;\n", startx, starty, w3m_config.current_img_width + w3m_config.fontx, w3m_config.current_img_height + w3m_config.fonty);
+    fflush(w3m_config.fout);
+    fgets(buffer, 1024, w3m_config.fin);
 }

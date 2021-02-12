@@ -14,7 +14,6 @@
 
 #define LEN(x) sizeof(x)/sizeof(*x)
 
-
 char* terminal[] = {"st", "-e"};
 char* fileopener[] = {"xdg-open"};
 char* terminaleditor[] = {"vim"};
@@ -38,6 +37,8 @@ void set_entry_type(entry* file) {
         return;
     else if (strstr(output, "image/"))
         file->type = ENTRY_TYPE_IMAGE;
+    else if (strstr(output, "video/"))
+        file->type = ENTRY_TYPE_VIDEO;
     else if (!strstr(output, "charset=binary") || strstr(output, "inode/x-empty"))
         file->type = ENTRY_TYPE_TEXT;
 }
@@ -211,10 +212,28 @@ void run_preview(char *path, entry* file, int begx, int begy, int maxx, int maxy
     else if (file->type == ENTRY_TYPE_IMAGE) {
         w3m_preview_image(path, file->name, begx, begy, maxx, maxy);
     }
+    else if (file->type == ENTRY_TYPE_VIDEO) {
+        char *runtime_dir = getenv("XDG_RUNTIME_DIR");
+        char file_name[1024];
+        snprintf(file_name, 1024, "%s.png", file->name);
+        char cmd[2048];
+        snprintf(cmd, 2048, "ffmpeg -y -i %s -vframes 1 %s/%s 2> /dev/null", file->name, runtime_dir, file_name);
+        errno = 0;
+        int return_code = system(cmd);
+        if (!errno && !return_code) {
+            w3m_preview_image(runtime_dir, file_name, begx, begy, maxx, maxy);
+        }
+    }
 }
 
-void run_clear_image_preview(char *path, entry *file, int begx, int begy, int maxx, int maxy) {
-    w3m_clear(path, file->name, begx, begy, maxx, maxy);
+void run_clear_image_preview(entry* e, int begx, int begy) {
+    w3m_clear(begx, begy);
+    if (e->type == ENTRY_TYPE_VIDEO) {
+        char file_path[1024];
+        char *runtime_dir = getenv("XDG_RUNTIME_DIR");
+        snprintf(file_path, 1024, "%s/%s.png", runtime_dir, e->name);
+        remove(file_path);
+    }
 }
 
 void run_cleanup() {
