@@ -188,17 +188,26 @@ void move_cursor(dir *directory, int n) {
     dir_load_dir_at_cursor(directory);
 }
 
+void setup_preview() {
+    int begx, begy;
+    int xmaxw3, ymaxw3;
+    getbegyx(w3, begy, begx);
+    begx++;
+    getmaxyx(w3, ymaxw3, xmaxw3);
+    run_setup_preview(begx, begy, xmaxw3, ymaxw3);
+}
+
+void handle_resize() {
+    ui_handle_resize();
+    setup_preview();
+}
+
 int main(int argc, char* argv[])
 {   
     struct sigaction sa;
     memset(&sa, 0, sizeof(struct sigaction));
-    sa.sa_handler = ui_handle_resize;
+    sa.sa_handler = handle_resize;
     sigaction(SIGWINCH, &sa, NULL);
-
-    int ch;
-    int temp = 0;
-    int begx, begy;
-    int xmaxw3, ymaxw3;
 
     setlocale(LC_ALL, "");
     initscr();
@@ -214,6 +223,10 @@ int main(int argc, char* argv[])
     sigset_t sigs;
     sigemptyset(&sigs);
     sigaddset(&sigs, SIGWINCH);
+
+    int ch;
+    int temp = 0;
+    setup_preview();
 
     enum ACTION action;
 
@@ -350,19 +363,16 @@ int main(int argc, char* argv[])
                 break;
 
             case PREVIEW:
-                getbegyx(w3, begy, begx);
-                begx++;
-                getmaxyx(w3, ymaxw3, xmaxw3);
                 wclear(w3);
                 wclear(wbetweenw2w3);
                 wrefresh(w3);
                 wrefresh(wbetweenw2w3);
                 usleep(10000);
-                run_preview(directory->path, directory->entry_array[directory->cursor], begx, begy, xmaxw3, ymaxw3);
+                run_preview(directory->path, directory->entry_array[directory->cursor]);
                 if (directory->entry_array[directory->cursor]->type == ENTRY_TYPE_IMAGE ||
                     directory->entry_array[directory->cursor]->type == ENTRY_TYPE_VIDEO) {
                     ch = getch();
-                    run_clear_image_preview(directory->entry_array[directory->cursor], begx, begy);
+                    run_clear_image_preview(directory->entry_array[directory->cursor]);
                     ungetch(ch);
                 }
                 break;

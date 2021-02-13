@@ -24,6 +24,12 @@ char* shell = NULL;
 
 magic_t cookie = NULL;
 
+struct dimensions {
+    int begx, begy, maxx, maxy;
+};
+
+struct dimensions preview_dimensions;
+
 void set_entry_type(entry* file) {
     if (file->type != ENTRY_TYPE_UNKNOWN_FILE)
         return;
@@ -186,7 +192,19 @@ void run_copy_to_clipboard(char** filenames, int count) {
     return;
 }
 
-void run_preview(char *path, entry* file, int begx, int begy, int maxx, int maxy) {
+void run_setup_preview(int begx, int begy, int maxx, int maxy) {
+    if (!w3m_config.pid)
+        w3m_start(begx, begy, maxx, maxy);
+
+    w3m_set_dimensions(begx, begy, maxx, maxy);
+
+    preview_dimensions.begx = begx;
+    preview_dimensions.begy = begy;
+    preview_dimensions.maxx = maxx;
+    preview_dimensions.maxy = maxy;
+}
+
+void run_preview(char *path, entry* file) {
     set_entry_type(file);
 
     if (file->type == ENTRY_TYPE_TEXT) {
@@ -194,9 +212,9 @@ void run_preview(char *path, entry* file, int begx, int begy, int maxx, int maxy
             free(file->preview);
             file->preview = NULL;
         }
-        char *preview = malloc(sizeof(*preview) * (maxx * maxy) + 1);
+        char *preview = malloc(sizeof(*preview) * (preview_dimensions.maxx * preview_dimensions.maxy) + 1);
         FILE* f = fopen(file->name, "r");
-        int bytesread = fread(preview, sizeof(*preview), maxx * maxy, f);
+        int bytesread = fread(preview, sizeof(*preview), preview_dimensions.maxx * preview_dimensions.maxy, f);
         preview[bytesread] = '\0';
         fclose(f);
 
@@ -215,7 +233,7 @@ void run_preview(char *path, entry* file, int begx, int begy, int maxx, int maxy
         file->preview = preview;
     }
     else if (file->type == ENTRY_TYPE_IMAGE) {
-        w3m_preview_image(path, file->name, begx, begy, maxx, maxy);
+        w3m_preview_image(path, file->name);
     }
     else if (file->type == ENTRY_TYPE_VIDEO) {
         char *runtime_dir = getenv("XDG_RUNTIME_DIR");
@@ -226,13 +244,13 @@ void run_preview(char *path, entry* file, int begx, int begy, int maxx, int maxy
         errno = 0;
         int return_code = system(cmd);
         if (!errno && !return_code) {
-            w3m_preview_image(runtime_dir, file_name, begx, begy, maxx, maxy);
+            w3m_preview_image(runtime_dir, file_name);
         }
     }
 }
 
-void run_clear_image_preview(entry* e, int begx, int begy) {
-    w3m_clear(begx, begy);
+void run_clear_image_preview(entry* e) {
+    w3m_clear(preview_dimensions.begx, preview_dimensions.begy);
     if (e->type == ENTRY_TYPE_VIDEO) {
         char file_path[1024];
         char *runtime_dir = getenv("XDG_RUNTIME_DIR");
