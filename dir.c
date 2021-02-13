@@ -138,7 +138,7 @@ dir* dir_create(const char* directorypath) {
             e->preview = NULL;
             switch (directory_entry->d_type) {
                 case DT_REG:
-                    e->type = ENTRY_TYPE_FILE;
+                    e->type = ENTRY_TYPE_UNKNOWN_FILE;
                     break;
                 case DT_DIR:
                     e->type = ENTRY_TYPE_DIRECTORY;
@@ -159,7 +159,7 @@ dir* dir_create(const char* directorypath) {
                         dircount++;
                     }
                     else {
-                        e->type = ENTRY_TYPE_FILE;
+                        e->type = ENTRY_TYPE_UNKNOWN_FILE;
                     }
                     break;
                 default:

@@ -3,7 +3,8 @@
 
 enum ENTRY_TYPE {
     ENTRY_TYPE_UNKNOWN,
-    ENTRY_TYPE_FILE,
+    ENTRY_TYPE_UNKNOWN_FILE,    //A file that hasn't been categorized yet
+    ENTRY_TYPE_FILE,            //A file that has been categorized as generic file (doesn't fit any other category)
     ENTRY_TYPE_BINARY,
     ENTRY_TYPE_TEXT,
     ENTRY_TYPE_IMAGE,

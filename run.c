@@ -25,6 +25,9 @@ char* shell = NULL;
 magic_t cookie = NULL;
 
 void set_entry_type(entry* file) {
+    if (file->type != ENTRY_TYPE_UNKNOWN_FILE)
+        return;
+
     if (!cookie) {
         cookie = magic_open(MAGIC_MIME);
         magic_load(cookie, NULL);
@@ -82,8 +85,7 @@ int run_open_file(entry* file,int wait) {
     char** arguments;
     int argumentindex = 0;
 
-    if (file->type == ENTRY_TYPE_FILE)
-        set_entry_type(file);
+    set_entry_type(file);
 
     if (terminaleditor[0] && file->type == ENTRY_TYPE_TEXT) {
         if (!wait) {
@@ -185,8 +187,7 @@ void run_copy_to_clipboard(char** filenames, int count) {
 }
 
 void run_preview(char *path, entry* file, int begx, int begy, int maxx, int maxy) {
-    if (file->type == ENTRY_TYPE_FILE)
-        set_entry_type(file);
+    set_entry_type(file);
 
     if (file->type == ENTRY_TYPE_TEXT) {
         char *preview = malloc(sizeof(*preview) * (maxx * maxy) + 1);
