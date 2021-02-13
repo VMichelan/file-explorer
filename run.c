@@ -190,6 +190,10 @@ void run_preview(char *path, entry* file, int begx, int begy, int maxx, int maxy
     set_entry_type(file);
 
     if (file->type == ENTRY_TYPE_TEXT) {
+        if (file->preview) {
+            free(file->preview);
+            file->preview = NULL;
+        }
         char *preview = malloc(sizeof(*preview) * (maxx * maxy) + 1);
         FILE* f = fopen(file->name, "r");
         int bytesread = fread(preview, sizeof(*preview), maxx * maxy, f);
