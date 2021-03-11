@@ -79,6 +79,11 @@ void w3m_kill() {
         return;
     fclose(w3m_config.fout);
     fclose(w3m_config.fin);
+
+    kill(w3m_config.pid, SIGTERM);
+    int status;
+    waitpid(w3m_config.pid, &status, 0);
+
     w3m_config.pid = 0;
 }
 
