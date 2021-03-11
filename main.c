@@ -62,6 +62,7 @@ static struct keybinding keybindings[] = {
     {'g'        , BEGIN         },
     {'G'        , END           },
     {'f'        , FIND          },
+    {'/'        , FIND          },
     {'r'        , RELOAD        },
     {'X'        , EXTRACT       },
     {'m'        , MARK          },
