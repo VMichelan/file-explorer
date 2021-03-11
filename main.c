@@ -183,11 +183,6 @@ void display_dir(dir* directory) {
     }
 }
 
-void move_cursor(dir *directory, int n) {
-    dir_move_cursor(directory,WIN_YMAX(yMax), n);
-    dir_load_dir_at_cursor(directory);
-}
-
 void setup_preview() {
     int begx, begy;
     int xmaxw3, ymaxw3;
@@ -225,7 +220,7 @@ int main(int argc, char* argv[])
     sigaddset(&sigs, SIGWINCH);
 
     int ch;
-    int temp = 0;
+    int cursor_step = 0;
     setup_preview();
 
     enum ACTION action;
@@ -248,19 +243,29 @@ int main(int argc, char* argv[])
 
         switch (action) {
             case DOWN:
-                move_cursor(directory,1);
-                break;
+                cursor_step = 1;
+                goto MOVE_CURSOR;
 
             case S_DOWN:
-                move_cursor(directory,(WIN_YMAX(yMax)/2));
-                break;
+                cursor_step = WIN_YMAX(yMax)/2;
+                goto MOVE_CURSOR;
 
             case UP:
-                move_cursor(directory,-1);
-                break;
+                cursor_step = -1;
+                goto MOVE_CURSOR;
 
             case S_UP:
-                move_cursor(directory,(-WIN_YMAX(yMax)/2));
+                cursor_step = -WIN_YMAX(yMax)/2;
+                goto MOVE_CURSOR;
+
+            case BEGIN:
+                cursor_step = -directory->cursor;
+                goto MOVE_CURSOR;
+
+            case END:
+                cursor_step = -directory->size;
+MOVE_CURSOR:
+                dir_move_cursor(directory, WIN_YMAX(yMax), cursor_step);
                 break;
 
             case LEFT:
@@ -375,14 +380,6 @@ int main(int argc, char* argv[])
                     run_clear_image_preview(directory->entry_array[directory->cursor]);
                     ungetch(ch);
                 }
-                break;
-
-            case BEGIN:
-                dir_move_cursor(directory, WIN_YMAX(yMax), -directory->cursor);
-                break;
-
-            case END:
-                dir_move_cursor(directory, WIN_YMAX(yMax), directory->size);
                 break;
 
             case NONE:

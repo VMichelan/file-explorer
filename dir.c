@@ -266,6 +266,7 @@ void dir_move_cursor(dir* directory,int yMax,int number) {
             }
         }
     }
+    dir_load_dir_at_cursor(directory);
 }
 
 dir* dir_init(char *arg_path) {
