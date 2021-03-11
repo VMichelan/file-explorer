@@ -196,12 +196,12 @@ void run_setup_preview(int begx, int begy, int maxx, int maxy) {
     if (!w3m_config.pid)
         w3m_start(begx, begy, maxx, maxy);
 
-    w3m_set_dimensions(begx, begy, maxx, maxy);
-
-    preview_dimensions.begx = begx;
-    preview_dimensions.begy = begy;
-    preview_dimensions.maxx = maxx;
-    preview_dimensions.maxy = maxy;
+    if (w3m_set_dimensions(begx, begy, maxx, maxy) == 0) {
+        preview_dimensions.begx = begx;
+        preview_dimensions.begy = begy;
+        preview_dimensions.maxx = maxx;
+        preview_dimensions.maxy = maxy;
+    }
 }
 
 void run_preview(char *path, entry* file) {

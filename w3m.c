@@ -15,10 +15,18 @@ struct w3m_config {
 
 struct w3m_config w3m_config;
 
-void w3m_set_dimensions(int begx, int begy, int maxx, int maxy) {
+int w3m_set_dimensions(int begx, int begy, int maxx, int maxy) {
     struct winsize screen_size;
 
+    screen_size.ws_col = 0;
+    screen_size.ws_row = 0;
+
     ioctl(0, TIOCGWINSZ, &screen_size);
+
+    if (!screen_size.ws_col || !screen_size.ws_row) {
+        return -1;
+    }
+
     int max_width_pixels, max_height_pixels;
     int fontx = screen_size.ws_xpixel / screen_size.ws_col;
     int fonty = screen_size.ws_ypixel / screen_size.ws_row;
@@ -31,6 +39,8 @@ void w3m_set_dimensions(int begx, int begy, int maxx, int maxy) {
     int startx, starty;
     w3m_config.startx = (begx * w3m_config.fontx);
     w3m_config.starty = (begy * w3m_config.fonty);
+
+    return 0;
 }
 
 void w3m_start(int begx, int begy, int maxx, int maxy) {
