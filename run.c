@@ -240,7 +240,7 @@ void run_preview(char *path, entry* file) {
         char file_name[1024];
         snprintf(file_name, 1024, "%s.png", file->name);
         char cmd[2048];
-        snprintf(cmd, 2048, "ffmpeg -y -i %s -vframes 1 %s/%s 2> /dev/null", file->name, runtime_dir, file_name);
+        snprintf(cmd, 2048, "ffmpeg -y -i \"%s\" -vframes 1 %s/\"%s\" 2> /dev/null", file->name, runtime_dir, file_name);
         errno = 0;
         int return_code = system(cmd);
         if (!errno && !return_code) {
